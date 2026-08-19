@@ -9,21 +9,22 @@
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
   :root {
-    --bg: #0c0e13;
-    --bg2: #12151d;
-    --bg3: #171b25;
-    --bg4: #1e2330;
-    --border: rgba(226,232,240,0.08);
-    --border2: rgba(226,232,240,0.16);
-    --blue: #6c93e0;
-    --blue2: #8fadec;
-    --green: #4fb787;
-    --red: #e0697a;
-    --white: #f2f4f8;
-    --text: #cbd2df;
-    --text2: #838ba0;
+    --bg: #f1f5f9;
+    --bg2: #ffffff;
+    --bg3: #f8fafc;
+    --bg4: #eef2f7;
+    --border: #e2e8f0;
+    --border2: #cbd5e1;
+    --blue: #1a56db;
+    --blue2: #2f6fef;
+    --green: #16a34a;
+    --red: #dc2626;
+    --white: #0f172a;
+    --text: #334155;
+    --text2: #64748b;
     --radius: 8px;
     --radius2: 12px;
+    --shadow: 0 4px 16px rgba(15,23,42,0.08);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -37,6 +38,7 @@
 
   header {
     padding: 16px 32px;
+    background: #ffffff;
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
@@ -69,6 +71,7 @@
     background: var(--bg2);
     border: 1px solid var(--border);
     border-radius: var(--radius2);
+    box-shadow: var(--shadow);
     padding: 24px;
     margin-bottom: 20px;
   }
@@ -162,7 +165,7 @@
     background: var(--blue);
     border: none;
     border-radius: var(--radius);
-    color: #0c0e13;
+    color: #ffffff;
     font-family: 'Space Grotesk', sans-serif;
     font-size: 15px;
     font-weight: 600;
@@ -190,8 +193,8 @@
 
   #resultado {
     display: none;
-    background: rgba(79,183,135,0.08);
-    border: 1px solid rgba(79,183,135,0.3);
+    background: rgba(22,163,74,0.06);
+    border: 1px solid rgba(22,163,74,0.25);
     border-radius: var(--radius2);
     padding: 20px 24px;
     margin-top: 20px;

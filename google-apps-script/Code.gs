@@ -170,9 +170,9 @@ function guardarProva(dados) {
 // UTILITÁRIOS
 // ══════════════════════════════════════════════
 function corIndice(v) {
-  if (v >= 80) return "#2e9e6b";
-  if (v >= 60) return "#c99a2e";
-  return "#d1495b";
+  if (v >= 80) return "#16a34a";
+  if (v >= 60) return "#ca8a04";
+  return "#dc2626";
 }
 
 function base64ParaBlob(dataUrl, nome) {
@@ -190,7 +190,7 @@ function estilizarTabelaInfo(tabela) {
     const row = tabela.getRow(i);
     row.getCell(0).setBackgroundColor("#f5f6f8");
     row.getCell(0).editAsText().setBold(true).setFontSize(10).setForegroundColor("#444444");
-    if (row.getNumCells() > 1) row.getCell(1).editAsText().setFontSize(10).setForegroundColor("#12151d");
+    if (row.getNumCells() > 1) row.getCell(1).editAsText().setFontSize(10).setForegroundColor("#0f172a");
   }
 }
 
@@ -203,11 +203,11 @@ function rodapeMarca(body) {
 function cabecalhoDocumento(body, subtitulo) {
   const titulo = body.appendParagraph("Virtus-Detector");
   titulo.setHeading(DocumentApp.ParagraphHeading.TITLE);
-  titulo.editAsText().setForegroundColor("#12151d");
+  titulo.editAsText().setForegroundColor("#0f172a");
 
   const sub = body.appendParagraph(subtitulo);
   sub.setHeading(DocumentApp.ParagraphHeading.SUBTITLE);
-  sub.editAsText().setForegroundColor("#6c93e0");
+  sub.editAsText().setForegroundColor("#1a56db");
 
   body.appendParagraph(new Date().toLocaleString("pt-PT"))
     .editAsText().setForegroundColor("#838ba0").setItalic(true).setFontSize(10);
@@ -319,7 +319,7 @@ function gerarPdfFolhaRespostas(dados) {
   dados.perguntas.forEach(function (p, i) {
     const pergPar = body.appendParagraph((i + 1) + ". " + p.pergunta);
     pergPar.setSpacingBefore(16);
-    pergPar.editAsText().setBold(true).setFontSize(12).setForegroundColor("#12151d");
+    pergPar.editAsText().setBold(true).setFontSize(12).setForegroundColor("#0f172a");
 
     if (p.imagem) {
       try {
@@ -340,7 +340,7 @@ function gerarPdfFolhaRespostas(dados) {
     const tabelaResp = body.appendTable([[resposta]]);
     const cel = tabelaResp.getRow(0).getCell(0);
     cel.setBackgroundColor("#f5f6f8");
-    cel.editAsText().setFontSize(11).setForegroundColor("#12151d");
+    cel.editAsText().setFontSize(11).setForegroundColor("#0f172a");
   });
 
   rodapeMarca(body);
@@ -360,7 +360,7 @@ function enviarEmailRelatorio(dados) {
 
   const html =
     '<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;">' +
-      '<div style="background:#12151d;padding:20px 24px;border-radius:10px 10px 0 0;">' +
+      '<div style="background:#1a56db;padding:20px 24px;border-radius:10px 10px 0 0;">' +
         '<h2 style="color:#fff;margin:0;">Virtus-Detector' + (dados.provaTitulo ? " — " + dados.provaTitulo : "") + '</h2>' +
         '<p style="color:#98a0b3;margin:6px 0 0;font-size:13px;">' + new Date().toLocaleString("pt-PT") + '</p>' +
       '</div>' +
