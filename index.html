@@ -816,6 +816,7 @@ const ANTHROPIC_API = "/api/claude";
 let kuyingila = false;
 let confianca = 100;
 let infracoes = [];
+let infracaoContagem = {}; // contagem por tipo de infração, para as estatísticas do relatório
 let galeriaFotos = [];
 let inicioDistracao = 0;
 let estaDistraido = false;
@@ -1133,11 +1134,27 @@ luseMatadi.onResults((bima) => {
 // ══════════════════════════════════════════════
 function subtrair(pts, motivo) {
   confianca = Math.max(0, confianca - pts);
+  infracaoContagem[motivo] = (infracaoContagem[motivo] || 0) + 1;
   if (!infracoes.includes(motivo)) {
     infracoes.push(motivo);
     atualizarInfrações();
   }
   atualizarScore();
+}
+
+// Estatísticas completas da sessão, usadas no relatório enviado por email
+function construirEstatisticas() {
+  const porTipo = { SISTEMA: 0, ALERTA: 0, GRAVE: 0 };
+  sessionLogs.forEach(l => { porTipo[l.tipo] = (porTipo[l.tipo] || 0) + 1; });
+  const duracao = sessionStart ? Math.floor((Date.now() - sessionStart) / 1000) : 0;
+  return {
+    duracaoSegundos: duracao,
+    duracaoFormatada: `${Math.floor(duracao / 60)}min ${duracao % 60}s`,
+    totalEventos: sessionLogs.length,
+    eventosPorTipo: porTipo,
+    contagemPorInfracao: infracaoContagem,
+    fotosCapturadas: galeriaFotos.length
+  };
 }
 
 function atualizarScore() {
@@ -1548,9 +1565,21 @@ function gerarRelatorioPDF(dados) {
     doc.text(`Índice de Integridade Final: ${dados.confianca}%`, 14, y); y += 7;
     doc.text(`Data: ${new Date().toLocaleString("pt-PT")}`, 14, y); y += 10;
 
-    doc.setFontSize(12); doc.text("Infrações:", 14, y); y += 7;
+    const est = dados.estatisticas || {};
+    const porTipo = est.eventosPorTipo || {};
+    doc.setFontSize(12); doc.text("Estatísticas da Sessão:", 14, y); y += 7;
     doc.setFontSize(10);
-    (infracoes.length ? infracoes : ["Nenhuma infração detetada"]).forEach(i => {
+    doc.text(`Duração: ${est.duracaoFormatada || "—"}`, 16, y); y += 6;
+    doc.text(`Total de eventos: ${est.totalEventos ?? 0}  (sistema: ${porTipo.SISTEMA || 0}, alertas: ${porTipo.ALERTA || 0}, graves: ${porTipo.GRAVE || 0})`, 16, y); y += 6;
+    doc.text(`Fotografias de evidência capturadas: ${est.fotosCapturadas ?? (dados.fotos || []).length}`, 16, y); y += 10;
+
+    doc.setFontSize(12); doc.text("Infrações (por tipo):", 14, y); y += 7;
+    doc.setFontSize(10);
+    const contagem = est.contagemPorInfracao || {};
+    const linhasInfracao = Object.keys(contagem).length
+      ? Object.entries(contagem).map(([k, v]) => `${k} — ${v}x`)
+      : ["Nenhuma infração detetada"];
+    linhasInfracao.forEach(i => {
       if (y > 275) { doc.addPage(); y = 20; }
       doc.text("• " + i, 16, y); y += 6;
     });
@@ -1615,7 +1644,10 @@ finalizarBtn.addEventListener("click", async () => {
     confianca: Math.round(confianca),
     observacoes: infracoes.length > 0 ? infracoes.join(" | ") : "Nenhuma infração detetada",
     resumoIA: resumoIA,
-    fotos: galeriaFotos
+    estatisticas: construirEstatisticas(),
+    eventos: sessionLogs,
+    fotos: galeriaFotos,
+    destinatario: "antoniorundy6@gmail.com"
   };
 
   // Envio com retry
