@@ -23,7 +23,7 @@
 // 4. Se pedir para rever permissões (agora o script também cria documentos do Google
 //    Docs temporários para gerar os PDFs), autorize normalmente.
 
-const DESTINATARIO = "antoniorundy6@gmail.com";
+const DESTINATARIO = "davidmanuelsb@gmail.com";
 const NOME_BASE_DADOS = "Virtus-Detector — Base de Dados";
 const FOLHA_PROVAS = "Provas";
 const FOLHA_RELATORIOS = "Relatorios";
