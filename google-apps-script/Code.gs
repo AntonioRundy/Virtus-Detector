@@ -93,8 +93,9 @@ function verificarAcesso(provaId, email) {
   return { permitido: true };
 }
 
-// Chamada só depois de o email de vigilância ser enviado com sucesso — é o que
-// efetivamente "gasta" o link para este email nesta prova.
+// Chamada assim que os dados ficam gravados nas Sheets (não depende do email
+// ser entregue) — é isso que efetivamente "gasta" o link para este email nesta
+// prova: a prova foi respondida, independentemente de o email chegar ou não.
 function registarConclusao(dados) {
   if (!dados.provaId || !dados.emailAluno) return;
   const ss = obterBaseDados();
@@ -136,14 +137,25 @@ function doPost(e) {
       return saidaJSON({ ok: true, id: dados.id });
     }
 
-    enviarEmailRelatorio(dados);
-    Logger.log("Email enviado com sucesso.");
+    // Grava sempre primeiro nas Sheets — é o backup garantido. Assim, mesmo que
+    // o envio do email falhe (ex: limite diário do Gmail atingido numa turma
+    // grande), as respostas e o relatório do aluno não se perdem: ficam
+    // acessíveis na planilha "Virtus-Detector — Base de Dados".
     registarNaFolha(dados);
     if (dados.perguntas && dados.perguntas.length) registarRespostas(dados);
     registarConclusao(dados);
     Logger.log("Registos gravados com sucesso.");
 
-    return saidaJSON({ ok: true });
+    let emailEnviado = true;
+    try {
+      enviarEmailRelatorio(dados);
+      Logger.log("Email enviado com sucesso.");
+    } catch (erroEmail) {
+      emailEnviado = false;
+      Logger.log("AVISO: dados gravados normalmente, mas o email FALHOU: " + erroEmail);
+    }
+
+    return saidaJSON({ ok: true, emailEnviado: emailEnviado });
   } catch (err) {
     Logger.log("ERRO NO doPost: " + err + " | STACK: " + (err.stack || "sem stack"));
     return saidaJSON({ ok: false, erro: String(err) });
