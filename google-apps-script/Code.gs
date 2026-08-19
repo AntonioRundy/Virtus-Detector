@@ -58,39 +58,48 @@ function obterOuCriarFolha(ss, nome, cabecalho) {
 
 // ══════════════════════════════════════════════
 // GET — o aluno pede as perguntas de uma prova: ?prova=ID
-// Ou verifica/regista o acesso único por email: ?prova=ID&verificarAcesso=email
+// Ou verifica (sem registar nada) se já existe submissão completa: ?prova=ID&verificarAcesso=email
 // ══════════════════════════════════════════════
 function doGet(e) {
   const id = e.parameter.prova;
   if (!id) return saidaJSON({ erro: "Parâmetro 'prova' em falta." });
 
   if (e.parameter.verificarAcesso) {
-    return saidaJSON(verificarERegistarAcesso(id, e.parameter.verificarAcesso));
+    return saidaJSON(verificarAcesso(id, e.parameter.verificarAcesso));
   }
 
   const prova = obterProva(id);
   return saidaJSON(prova || { erro: "Prova não encontrada." });
 }
 
-// Link de utilização única por email: a primeira verificação bem-sucedida já
-// regista o acesso nesse momento — qualquer tentativa seguinte com o mesmo
-// email para a mesma prova é recusada, mesmo que o aluno não chegue a submeter.
-function verificarERegistarAcesso(provaId, email) {
+// Link de utilização única por email — mas só conta depois de uma SUBMISSÃO
+// COMPLETA (ver registarConclusao, chamada no fim do doPost). Esta função aqui
+// apenas verifica, não regista nada, por isso o aluno pode reabrir/atualizar o
+// link livremente enquanto ainda não tiver terminado a prova.
+function verificarAcesso(provaId, email) {
   const emailNormalizado = String(email).trim().toLowerCase();
   if (!emailNormalizado || emailNormalizado.indexOf("@") === -1) {
     return { permitido: false, motivo: "Email inválido." };
   }
 
   const ss = obterBaseDados();
-  const sheet = obterOuCriarFolha(ss, FOLHA_ACESSOS, ["ProvaID", "Email", "DataAcesso"]);
+  const sheet = obterOuCriarFolha(ss, FOLHA_ACESSOS, ["ProvaID", "Email", "DataConclusao"]);
   const linhas = sheet.getDataRange().getValues();
   for (let i = 1; i < linhas.length; i++) {
     if (String(linhas[i][0]) === String(provaId) && String(linhas[i][1]).toLowerCase() === emailNormalizado) {
-      return { permitido: false, motivo: "Este link já foi utilizado com este email." };
+      return { permitido: false, motivo: "Já existe uma submissão completa desta prova com este email." };
     }
   }
-  sheet.appendRow([provaId, emailNormalizado, new Date()]);
   return { permitido: true };
+}
+
+// Chamada só depois de o email de vigilância ser enviado com sucesso — é o que
+// efetivamente "gasta" o link para este email nesta prova.
+function registarConclusao(dados) {
+  if (!dados.provaId || !dados.emailAluno) return;
+  const ss = obterBaseDados();
+  const sheet = obterOuCriarFolha(ss, FOLHA_ACESSOS, ["ProvaID", "Email", "DataConclusao"]);
+  sheet.appendRow([dados.provaId, String(dados.emailAluno).trim().toLowerCase(), new Date()]);
 }
 
 function obterProva(id) {
@@ -126,6 +135,7 @@ function doPost(e) {
     enviarEmailRelatorio(dados);
     registarNaFolha(dados);
     if (dados.perguntas && dados.perguntas.length) registarRespostas(dados);
+    registarConclusao(dados);
 
     return saidaJSON({ ok: true });
   } catch (err) {

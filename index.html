@@ -779,7 +779,7 @@
     </div>
 
     <div class="consent-box">
-      <strong>⚠️ Link de utilização única:</strong> esta prova só pode ser acedida <strong>uma vez</strong> por email. Apenas o primeiro acesso é válido — se voltar a abrir este link (ou o partilhar), o acesso será recusado.
+      <strong>⚠️ Submissão única:</strong> só a <strong>primeira submissão completa</strong> desta prova com o seu email é válida. Pode reabrir este link enquanto não terminar, mas depois de enviar as respostas, uma segunda tentativa será recusada.
     </div>
 
     <label>O seu email</label>
@@ -1065,8 +1065,9 @@ async function carregarProva() {
   }
 }
 
-// Verifica no servidor se este email já usou este link; se for a primeira vez,
-// o próprio servidor já regista o uso nesse momento (não espera pela submissão final).
+// Verifica no servidor se este email já tem uma submissão completa desta prova.
+// Não regista nada aqui — o link só é "gasto" quando a sessão é finalizada com
+// sucesso (ver registarConclusao no Code.gs), por isso reabrir a página é seguro.
 document.getElementById("gateContinuarBtn").addEventListener("click", async () => {
   const email = document.getElementById("gateEmail").value.trim().toLowerCase();
   const gateErro = document.getElementById("gateErro");
