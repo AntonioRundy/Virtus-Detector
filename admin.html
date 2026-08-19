@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Virtus-Detector — Painel do Professor</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #0c0e13;
+    --bg2: #12151d;
+    --bg3: #171b25;
+    --bg4: #1e2330;
+    --border: rgba(226,232,240,0.08);
+    --border2: rgba(226,232,240,0.16);
+    --blue: #6c93e0;
+    --blue2: #8fadec;
+    --green: #4fb787;
+    --red: #e0697a;
+    --white: #f2f4f8;
+    --text: #cbd2df;
+    --text2: #838ba0;
+    --radius: 8px;
+    --radius2: 12px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Space Grotesk', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  header {
+    padding: 16px 32px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  header .logo-icon {
+    width: 34px; height: 34px;
+    background: var(--bg4);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+
+  header h1 { font-size: 18px; font-weight: 700; color: var(--white); }
+  header h1 span { color: var(--blue); }
+  header .subtitle { font-size: 12px; color: var(--text2); margin-left: auto; }
+
+  main {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+  }
+
+  h2 { font-size: 22px; color: var(--white); margin-bottom: 6px; }
+  .lead { font-size: 14px; color: var(--text2); margin-bottom: 28px; line-height: 1.6; }
+
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius2);
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+
+  label {
+    display: block;
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+
+  input[type="text"], textarea, select {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 11px 14px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    color: var(--white);
+    outline: none;
+    margin-bottom: 16px;
+    transition: border-color 0.2s;
+  }
+
+  input:focus, textarea:focus, select:focus { border-color: var(--blue); }
+  textarea { resize: vertical; min-height: 70px; line-height: 1.5; }
+
+  .pergunta-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 14px;
+    position: relative;
+  }
+
+  .pergunta-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .pergunta-numero {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--blue2);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .btn-remover {
+    background: none;
+    border: none;
+    color: var(--red);
+    cursor: pointer;
+    font-size: 13px;
+    padding: 4px 8px;
+  }
+  .btn-remover:hover { text-decoration: underline; }
+
+  .opcoes-lista { margin-bottom: 8px; }
+
+  .opcao-linha {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    align-items: center;
+  }
+
+  .opcao-linha input[type="text"] { margin-bottom: 0; flex: 1; }
+
+  .btn-mini {
+    background: var(--bg4);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    color: var(--text2);
+    cursor: pointer;
+    font-size: 12px;
+    padding: 6px 10px;
+    white-space: nowrap;
+  }
+  .btn-mini:hover { color: var(--white); }
+
+  .btn-primary {
+    width: 100%;
+    padding: 13px;
+    background: var(--blue);
+    border: none;
+    border-radius: var(--radius);
+    color: #0c0e13;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-primary:hover { background: var(--blue2); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .btn-secundario {
+    width: 100%;
+    padding: 12px;
+    background: transparent;
+    border: 1px dashed var(--border2);
+    border-radius: var(--radius);
+    color: var(--text2);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-bottom: 20px;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .btn-secundario:hover { border-color: var(--blue); color: var(--blue2); }
+
+  #resultado {
+    display: none;
+    background: rgba(79,183,135,0.08);
+    border: 1px solid rgba(79,183,135,0.3);
+    border-radius: var(--radius2);
+    padding: 20px 24px;
+    margin-top: 20px;
+  }
+
+  #resultado h3 { color: var(--green); font-size: 15px; margin-bottom: 12px; }
+
+  .link-box {
+    display: flex;
+    gap: 8px;
+  }
+
+  .link-box input {
+    margin-bottom: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 12px 20px;
+    font-size: 13px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.3s, transform 0.3s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-icon">🛡️</div>
+  <h1>Virtus<span>-Detector</span></h1>
+  <span class="subtitle">Painel do Professor</span>
+</header>
+
+<main>
+  <h2>Criar Prova / Tarefa</h2>
+  <p class="lead">Monte o enunciado e as perguntas abaixo. No final, gera-se um link único —
+    envie-o aos alunos. Eles vão ver o enunciado, responder dentro da própria plataforma de
+    vigilância, e você recebe por email a folha de respostas junto com o relatório de controlo
+    de cada aluno.</p>
+
+  <div class="card">
+    <label>Título da Prova</label>
+    <input type="text" id="tituloProva" placeholder="Ex: Trabalho de Casa — Capítulo 3">
+
+    <label>Instruções Gerais (opcional)</label>
+    <textarea id="enunciadoGeral" placeholder="Ex: Responda a todas as perguntas com as suas próprias palavras. Consulte apenas o material da aula."></textarea>
+  </div>
+
+  <div id="perguntasContainer"></div>
+
+  <button class="btn-secundario" id="addPerguntaBtn">+ Adicionar Pergunta</button>
+
+  <button class="btn-primary" id="gerarBtn">Gerar Link da Prova</button>
+
+  <div id="resultado">
+    <h3>✅ Prova criada com sucesso</h3>
+    <label>Envie este link aos alunos:</label>
+    <div class="link-box">
+      <input type="text" id="linkGerado" readonly>
+      <button class="btn-mini" id="copiarBtn">Copiar</button>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyOW08VAg6vD09feQXH8BmBT9p-Xfa_K0FkGo7KJQ6tmqDxqDHnxZDRv8HRE_ckrRY2/exec";
+const SITE_URL = "https://antoniorundy.github.io/Virtus-Detector/";
+
+let perguntas = [];
+
+const perguntasContainer = document.getElementById("perguntasContainer");
+const addPerguntaBtn = document.getElementById("addPerguntaBtn");
+const gerarBtn = document.getElementById("gerarBtn");
+const resultado = document.getElementById("resultado");
+const linkGerado = document.getElementById("linkGerado");
+const copiarBtn = document.getElementById("copiarBtn");
+const toast = document.getElementById("toast");
+
+function showToast(msg) {
+  toast.textContent = msg;
+  toast.className = "toast show";
+  setTimeout(() => { toast.className = "toast"; }, 2500);
+}
+
+function novaPergunta() {
+  return { tipo: "texto", pergunta: "", opcoes: ["", ""] };
+}
+
+function renderPerguntas() {
+  perguntasContainer.innerHTML = "";
+  perguntas.forEach((p, i) => {
+    const card = document.createElement("div");
+    card.className = "pergunta-card";
+
+    const header = document.createElement("div");
+    header.className = "pergunta-header";
+    header.innerHTML = `<span class="pergunta-numero">PERGUNTA ${i + 1}</span>`;
+    const btnRemover = document.createElement("button");
+    btnRemover.className = "btn-remover";
+    btnRemover.textContent = "Remover";
+    btnRemover.onclick = () => { perguntas.splice(i, 1); renderPerguntas(); };
+    header.appendChild(btnRemover);
+    card.appendChild(header);
+
+    const selectTipo = document.createElement("select");
+    selectTipo.innerHTML = `
+      <option value="texto">Resposta livre (texto)</option>
+      <option value="multipla">Escolha múltipla</option>`;
+    selectTipo.value = p.tipo;
+    selectTipo.onchange = () => { p.tipo = selectTipo.value; renderPerguntas(); };
+    card.appendChild(selectTipo);
+
+    const textareaPergunta = document.createElement("textarea");
+    textareaPergunta.placeholder = "Escreva a pergunta...";
+    textareaPergunta.value = p.pergunta;
+    textareaPergunta.style.minHeight = "50px";
+    textareaPergunta.oninput = () => { p.pergunta = textareaPergunta.value; };
+    card.appendChild(textareaPergunta);
+
+    if (p.tipo === "multipla") {
+      const opcoesLista = document.createElement("div");
+      opcoesLista.className = "opcoes-lista";
+      p.opcoes.forEach((op, j) => {
+        const linha = document.createElement("div");
+        linha.className = "opcao-linha";
+        const inputOp = document.createElement("input");
+        inputOp.type = "text";
+        inputOp.placeholder = "Opção " + (j + 1);
+        inputOp.value = op;
+        inputOp.oninput = () => { p.opcoes[j] = inputOp.value; };
+        linha.appendChild(inputOp);
+        if (p.opcoes.length > 2) {
+          const btnDel = document.createElement("button");
+          btnDel.className = "btn-mini";
+          btnDel.textContent = "×";
+          btnDel.onclick = () => { p.opcoes.splice(j, 1); renderPerguntas(); };
+          linha.appendChild(btnDel);
+        }
+        opcoesLista.appendChild(linha);
+      });
+      card.appendChild(opcoesLista);
+
+      const btnAddOpcao = document.createElement("button");
+      btnAddOpcao.className = "btn-mini";
+      btnAddOpcao.textContent = "+ opção";
+      btnAddOpcao.onclick = () => { p.opcoes.push(""); renderPerguntas(); };
+      card.appendChild(btnAddOpcao);
+    }
+
+    perguntasContainer.appendChild(card);
+  });
+}
+
+addPerguntaBtn.addEventListener("click", () => {
+  perguntas.push(novaPergunta());
+  renderPerguntas();
+});
+
+// Começa com uma pergunta em branco para não abrir vazio
+perguntas.push(novaPergunta());
+renderPerguntas();
+
+function gerarId() {
+  return Math.random().toString(36).slice(2, 8).toUpperCase();
+}
+
+gerarBtn.addEventListener("click", async () => {
+  const titulo = document.getElementById("tituloProva").value.trim();
+  if (!titulo) return showToast("Escreva um título para a prova.");
+  const perguntasValidas = perguntas.filter(p => p.pergunta.trim());
+  if (!perguntasValidas.length) return showToast("Adicione pelo menos uma pergunta.");
+
+  gerarBtn.disabled = true;
+  gerarBtn.textContent = "A gerar...";
+
+  const id = gerarId();
+  const payload = {
+    acao: "criarProva",
+    id: id,
+    titulo: titulo,
+    enunciado: document.getElementById("enunciadoGeral").value.trim(),
+    perguntas: perguntasValidas.map(p => ({
+      tipo: p.tipo,
+      pergunta: p.pergunta.trim(),
+      opcoes: p.tipo === "multipla" ? p.opcoes.filter(o => o.trim()) : undefined
+    }))
+  };
+
+  try {
+    await fetch(WEBHOOK_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload)
+    });
+    const link = SITE_URL + "?prova=" + id;
+    linkGerado.value = link;
+    resultado.style.display = "block";
+    resultado.scrollIntoView({ behavior: "smooth", block: "center" });
+    showToast("Prova criada. Aguarde alguns segundos antes de testar o link.");
+  } catch (e) {
+    showToast("Falha ao criar a prova. Verifique a ligação.");
+  }
+
+  gerarBtn.disabled = false;
+  gerarBtn.textContent = "Gerar Link da Prova";
+});
+
+copiarBtn.addEventListener("click", () => {
+  linkGerado.select();
+  navigator.clipboard.writeText(linkGerado.value).then(() => showToast("Link copiado!"));
+});
+</script>
+</body>
+</html>

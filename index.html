@@ -259,10 +259,90 @@
   .exam-grid {
     display: grid;
     grid-template-columns: 1fr 380px;
-    grid-template-rows: auto 1fr;
+    grid-template-rows: auto auto 1fr;
     gap: 20px;
     min-height: calc(100vh - 140px);
   }
+
+  /* ── PAINEL DA PROVA ── */
+  .prova-card {
+    grid-column: 1 / -1;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius2);
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .prova-enunciado {
+    padding: 16px 20px 0;
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.6;
+    white-space: pre-wrap;
+  }
+
+  .prova-perguntas {
+    padding: 16px 20px 20px;
+    max-height: 420px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .prova-pergunta-num {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--blue2);
+    font-family: 'JetBrains Mono', monospace;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .prova-pergunta-texto {
+    font-size: 14px;
+    color: var(--white);
+    margin-bottom: 10px;
+    line-height: 1.5;
+  }
+
+  .prova-resposta-texto {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    color: var(--white);
+    outline: none;
+    resize: vertical;
+    min-height: 60px;
+    transition: border-color 0.2s;
+  }
+
+  .prova-resposta-texto:focus { border-color: var(--blue); }
+
+  .prova-opcoes { display: flex; flex-direction: column; gap: 8px; }
+
+  .prova-opcao {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--text);
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 9px 14px;
+    cursor: pointer;
+  }
+
+  .prova-opcao:hover { border-color: var(--border2); }
+  .prova-opcao input { accent-color: var(--blue); margin: 0; }
 
   /* ── PAINEL DE VÍDEO ── */
   .video-panel {
@@ -676,6 +756,11 @@
     <h2>Iniciar Sessão de Exame</h2>
     <p>Preencha os seus dados para começar. A sessão será monitorizada por Inteligência Artificial em conformidade com as normas de integridade académica.</p>
 
+    <div id="provaBadgeLogin" style="display:none; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); padding:12px 16px; margin-bottom:20px;">
+      <div style="font-size:11px; color:var(--text2); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Prova associada</div>
+      <div style="font-size:14px; color:var(--white); font-weight:600;" id="provaBadgeTitulo">—</div>
+    </div>
+
     <div class="consent-box">
       <strong>⚠️ Aviso de Privacidade:</strong> Esta sessão captura vídeo, áudio e fotografias periódicas, exige modo de ecrã inteiro, monitoriza a orientação da cabeça/olhar (desvios superiores a 25° são registados), deteta objetos não autorizados (telemóveis, livros, segundos ecrãs) e bloqueia copiar/colar e atalhos de programador. Os dados são processados automaticamente e enviados ao supervisor responsável.
     </div>
@@ -712,6 +797,15 @@
           <div class="student-badge" id="studentBadge">—</div>
           <button class="btn-danger" id="finalizarBtn">Finalizar Sessão</button>
         </div>
+      </div>
+
+      <!-- PROVA / TAREFA (só aparece se o link tiver ?prova=ID) -->
+      <div class="prova-card" id="provaCard">
+        <div class="panel-header">
+          <span class="panel-title" id="provaTituloPanel">Prova</span>
+        </div>
+        <div class="prova-enunciado" id="provaEnunciado"></div>
+        <div class="prova-perguntas" id="provaPerguntas"></div>
       </div>
 
       <!-- COLUNA ESQUERDA: VÍDEOS -->
@@ -885,6 +979,93 @@ const faceStatus = document.getElementById("faceStatus");
 const angleTelemetry = document.getElementById("angleTelemetry");
 const sessionTimerEl = document.getElementById("sessionTimer");
 const studentBadge = document.getElementById("studentBadge");
+const provaCard = document.getElementById("provaCard");
+const provaEnunciadoEl = document.getElementById("provaEnunciado");
+const provaPerguntasEl = document.getElementById("provaPerguntas");
+
+// ══════════════════════════════════════════════
+// PROVA / TAREFA (?prova=ID na URL)
+// ══════════════════════════════════════════════
+let provaAtual = null;
+
+async function carregarProva() {
+  const params = new URLSearchParams(location.search);
+  const id = params.get("prova");
+  if (!id) return;
+
+  try {
+    const resp = await fetch(WEBHOOK_URL + "?prova=" + encodeURIComponent(id));
+    const prova = await resp.json();
+    if (prova.erro) {
+      showToast("Prova não encontrada: " + prova.erro, "error", 5000);
+      return;
+    }
+    provaAtual = prova;
+    document.getElementById("provaBadgeLogin").style.display = "block";
+    document.getElementById("provaBadgeTitulo").textContent = prova.titulo || "Prova sem título";
+    renderProva();
+  } catch (e) {
+    showToast("Não foi possível carregar a prova associada a este link.", "error", 5000);
+  }
+}
+
+function renderProva() {
+  if (!provaAtual) return;
+  document.getElementById("provaTituloPanel").textContent = "📄 " + (provaAtual.titulo || "Prova");
+  provaEnunciadoEl.textContent = provaAtual.enunciado || "";
+  provaPerguntasEl.innerHTML = "";
+
+  provaAtual.perguntas.forEach((p, i) => {
+    const bloco = document.createElement("div");
+    bloco.className = "prova-pergunta-bloco";
+
+    const num = document.createElement("div");
+    num.className = "prova-pergunta-num";
+    num.textContent = "Pergunta " + (i + 1);
+    bloco.appendChild(num);
+
+    const texto = document.createElement("div");
+    texto.className = "prova-pergunta-texto";
+    texto.textContent = p.pergunta;
+    bloco.appendChild(texto);
+
+    if (p.tipo === "multipla" && Array.isArray(p.opcoes) && p.opcoes.length) {
+      const opcoesDiv = document.createElement("div");
+      opcoesDiv.className = "prova-opcoes";
+      p.opcoes.forEach((op) => {
+        const label = document.createElement("label");
+        label.className = "prova-opcao";
+        label.innerHTML = `<input type="radio" name="prova_pergunta_${i}" value="${op.replace(/"/g, "&quot;")}"> ${op}`;
+        opcoesDiv.appendChild(label);
+      });
+      bloco.appendChild(opcoesDiv);
+    } else {
+      const textarea = document.createElement("textarea");
+      textarea.className = "prova-resposta-texto";
+      textarea.dataset.idx = i;
+      textarea.placeholder = "A sua resposta...";
+      bloco.appendChild(textarea);
+    }
+
+    provaPerguntasEl.appendChild(bloco);
+  });
+
+  provaCard.style.display = "flex";
+}
+
+function coletarRespostas() {
+  if (!provaAtual) return [];
+  return provaAtual.perguntas.map((p, i) => {
+    if (p.tipo === "multipla") {
+      const marcado = provaPerguntasEl.querySelector(`input[name="prova_pergunta_${i}"]:checked`);
+      return marcado ? marcado.value : "";
+    }
+    const textarea = provaPerguntasEl.querySelector(`textarea[data-idx="${i}"]`);
+    return textarea ? textarea.value.trim() : "";
+  });
+}
+
+carregarProva();
 
 // ══════════════════════════════════════════════
 // CONSENTIMENTO
@@ -1647,7 +1828,11 @@ finalizarBtn.addEventListener("click", async () => {
     estatisticas: construirEstatisticas(),
     eventos: sessionLogs,
     fotos: galeriaFotos,
-    destinatario: "antoniorundy6@gmail.com"
+    destinatario: "antoniorundy6@gmail.com",
+    provaId: provaAtual ? provaAtual.id : "",
+    provaTitulo: provaAtual ? provaAtual.titulo : "",
+    perguntas: provaAtual ? provaAtual.perguntas : [],
+    respostas: provaAtual ? coletarRespostas() : []
   };
 
   // Envio com retry
