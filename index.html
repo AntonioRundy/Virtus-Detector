@@ -3,36 +3,36 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ProctorAI — Sistema de Vigilância de Exames</title>
+<title>Virtus-Detector — Sistema de Vigilância de Exames</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
   :root {
-    --bg: #0a0c10;
-    --bg2: #0f1318;
-    --bg3: #151a22;
-    --bg4: #1c2330;
-    --border: rgba(99,179,237,0.12);
-    --border2: rgba(99,179,237,0.25);
-    --blue: #63b3ed;
-    --blue2: #90cdf4;
-    --green: #68d391;
-    --green2: #9ae6b4;
-    --red: #fc8181;
-    --red2: #feb2b2;
-    --yellow: #f6e05e;
-    --yellow2: #faf089;
-    --gray: #718096;
-    --gray2: #a0aec0;
-    --white: #f7fafc;
-    --text: #e2e8f0;
-    --text2: #a0aec0;
-    --radius: 10px;
-    --radius2: 16px;
-    --shadow: 0 4px 24px rgba(0,0,0,0.4);
-    --glow-blue: 0 0 20px rgba(99,179,237,0.15);
-    --glow-green: 0 0 20px rgba(104,211,145,0.15);
-    --glow-red: 0 0 20px rgba(252,129,129,0.2);
+    --bg: #0c0e13;
+    --bg2: #12151d;
+    --bg3: #171b25;
+    --bg4: #1e2330;
+    --border: rgba(226,232,240,0.08);
+    --border2: rgba(226,232,240,0.16);
+    --blue: #6c93e0;
+    --blue2: #8fadec;
+    --green: #4fb787;
+    --green2: #7ecca4;
+    --red: #e0697a;
+    --red2: #ea94a0;
+    --yellow: #d1a53d;
+    --yellow2: #e0bc62;
+    --gray: #6b7385;
+    --gray2: #98a0b3;
+    --white: #f2f4f8;
+    --text: #cbd2df;
+    --text2: #838ba0;
+    --radius: 8px;
+    --radius2: 12px;
+    --shadow: 0 4px 20px rgba(0,0,0,0.3);
+    --glow-blue: 0 1px 2px rgba(0,0,0,0.2);
+    --glow-green: none;
+    --glow-red: 0 1px 2px rgba(0,0,0,0.2);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -45,27 +45,13 @@
     overflow-x: hidden;
   }
 
-  /* ── GRID DE FUNDO ── */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(99,179,237,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(99,179,237,0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
-  }
-
   /* ── HEADER ── */
   header {
     position: relative;
     z-index: 10;
-    padding: 18px 32px;
+    padding: 16px 32px;
     border-bottom: 1px solid var(--border);
-    background: rgba(10,12,16,0.95);
-    backdrop-filter: blur(12px);
+    background: rgba(12,14,19,0.97);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -78,15 +64,15 @@
   }
 
   .logo-icon {
-    width: 36px;
-    height: 36px;
-    background: linear-gradient(135deg, var(--blue), #4299e1);
+    width: 34px;
+    height: 34px;
+    background: var(--bg4);
+    border: 1px solid var(--border2);
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
-    box-shadow: var(--glow-blue);
+    font-size: 16px;
   }
 
   .logo h1 {
@@ -169,8 +155,8 @@
   }
 
   .consent-box {
-    background: rgba(252,129,129,0.06);
-    border: 1px solid rgba(252,129,129,0.2);
+    background: rgba(224,105,122,0.06);
+    border: 1px solid rgba(224,105,122,0.18);
     border-radius: var(--radius);
     padding: 14px 16px;
     margin-bottom: 24px;
@@ -207,7 +193,7 @@
 
   input:focus {
     border-color: var(--blue);
-    box-shadow: 0 0 0 3px rgba(99,179,237,0.1);
+    box-shadow: 0 0 0 3px rgba(108,147,224,0.12);
   }
 
   .consent-check {
@@ -234,38 +220,35 @@
 
   .btn-primary {
     width: 100%;
-    padding: 14px;
-    background: linear-gradient(135deg, #4299e1, #63b3ed);
+    padding: 13px;
+    background: var(--blue);
     border: none;
     border-radius: var(--radius);
-    color: white;
+    color: #0c0e13;
     font-family: 'Space Grotesk', sans-serif;
     font-size: 15px;
     font-weight: 600;
     cursor: pointer;
-    transition: opacity 0.2s, transform 0.1s;
-    box-shadow: var(--glow-blue);
+    transition: background 0.2s, transform 0.1s;
   }
 
-  .btn-primary:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
+  .btn-primary:hover:not(:disabled) { background: var(--blue2); transform: translateY(-1px); }
   .btn-primary:active { transform: scale(0.99); }
   .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
   .btn-danger {
-    padding: 12px 28px;
-    background: linear-gradient(135deg, #c53030, #e53e3e);
-    border: none;
+    padding: 11px 26px;
+    background: transparent;
+    border: 1px solid var(--red);
     border-radius: var(--radius);
-    color: white;
+    color: var(--red2);
     font-family: 'Space Grotesk', sans-serif;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    transition: opacity 0.2s;
-    box-shadow: var(--glow-red);
+    transition: background 0.2s, color 0.2s;
   }
-
-  .btn-danger:hover { opacity: 0.9; }
+  .btn-danger:hover { background: rgba(224,105,122,0.12); }
   .btn-danger:disabled { opacity: 0.4; cursor: not-allowed; }
 
   /* ── TELA DE EXAME ── */
@@ -677,7 +660,7 @@
   <div class="logo">
     <div class="logo-icon">🛡️</div>
     <div>
-      <h1>Proctor<span>AI</span></h1>
+      <h1>Virtus<span>-Detector</span></h1>
     </div>
   </div>
   <div class="header-status">
@@ -694,7 +677,7 @@
     <p>Preencha os seus dados para começar. A sessão será monitorizada por Inteligência Artificial em conformidade com as normas de integridade académica.</p>
 
     <div class="consent-box">
-      <strong>⚠️ Aviso de Privacidade:</strong> Esta sessão captura vídeo, áudio e fotografias periódicas para fins de auditoria académica. Os dados são processados automaticamente e enviados ao supervisor responsável.
+      <strong>⚠️ Aviso de Privacidade:</strong> Esta sessão captura vídeo, áudio e fotografias periódicas, exige modo de ecrã inteiro, monitoriza a orientação da cabeça/olhar (desvios superiores a 25° são registados), deteta objetos não autorizados (telemóveis, livros, segundos ecrãs) e bloqueia copiar/colar e atalhos de programador. Os dados são processados automaticamente e enviados ao supervisor responsável.
     </div>
 
     <label>Nome Completo</label>
@@ -735,7 +718,10 @@
       <div class="video-panel">
         <div class="panel-header">
           <span class="panel-title">Feeds de Vigilância</span>
-          <span style="font-size:11px; font-family: 'JetBrains Mono', monospace; color: var(--text2);" id="faceStatus">Aguardando câmara...</span>
+          <div style="display:flex; align-items:center; gap:14px;">
+            <span style="font-size:11px; font-family: 'JetBrains Mono', monospace; color: var(--text2);" id="angleTelemetry"></span>
+            <span style="font-size:11px; font-family: 'JetBrains Mono', monospace; color: var(--text2);" id="faceStatus">Aguardando câmara...</span>
+          </div>
         </div>
         <div class="video-grid">
           <div class="video-wrapper">
@@ -808,12 +794,21 @@
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
 
+<!-- DETEÇÃO DE OBJETOS -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js" crossorigin="anonymous"></script>
+
+<!-- RELATÓRIO PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
+
 <script>
 // ══════════════════════════════════════════════
 // CONFIGURAÇÃO
 // ══════════════════════════════════════════════
 const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzwhglzPzqEQ8mge4QNZGdPGFzAUl4kov7gwzVklxIHNd5vNPFQbN0X9kkQEDB6kGhhyA/exec";
-const ANTHROPIC_API = "https://api.anthropic.com/v1/messages";
+// A IA passou a falar com um proxy próprio (api/claude.js) em vez da API da Anthropic
+// diretamente do browser: assim a chave fica só no servidor e o CORS deixa de ser um problema.
+const ANTHROPIC_API = "/api/claude";
 
 // ══════════════════════════════════════════════
 // ESTADO GLOBAL
@@ -832,6 +827,40 @@ let retryCount = 0;
 
 // Histórico de conversa com a IA (multi-turn)
 let iaHistory = [];
+
+// ── Postura da cabeça (calibração + limite de 25°) ──
+let calibrado = false;
+const calibAmostras = [];
+const CALIB_FRAMES = 45;      // ~1.5s de vídeo a assumir que o candidato está de frente
+const LIMITE_ANGULO = 25;     // graus — pedido explícito do utilizador
+const HOLD_MS = 700;          // desvio precisa de se manter este tempo antes de contar
+const REPEAT_MS = 3000;       // intervalo mínimo entre registos repetidos do mesmo desvio
+let yawOffset = 0, pitchOffset = 0;
+const yawBuf = [], pitchBuf = [];
+const SMOOTH_N = 6;
+const yawState = { overSince: 0, lastFlag: 0 };
+const pitchState = { overSince: 0, lastFlag: 0 };
+
+// ── Liveness (deteção de piscar) ──
+let olhoFechado = false;
+let ultimoPiscar = 0;
+let ultimoAvisoLiveness = 0;
+
+// ── Assinatura facial (deteção básica de troca de candidato) ──
+let assinaturaReferencia = null;
+let ultimaVerifIdentidade = 0;
+
+// ── Anti-fraude do ambiente ──
+let devtoolsAberto = false;
+let modeloObjetos = null;
+let ultimaVerifObjetos = 0;
+const OBJETOS_PROIBIDOS = {
+  "cell phone": "telemóvel",
+  "book": "livro/folha de apontamentos",
+  "laptop": "segundo portátil",
+  "tv": "ecrã externo",
+  "remote": "controlo remoto"
+};
 
 // ══════════════════════════════════════════════
 // DOM
@@ -852,6 +881,7 @@ const finalizarBtn = document.getElementById("finalizarBtn");
 const headerDot = document.getElementById("headerDot");
 const headerStatusText = document.getElementById("headerStatusText");
 const faceStatus = document.getElementById("faceStatus");
+const angleTelemetry = document.getElementById("angleTelemetry");
 const sessionTimerEl = document.getElementById("sessionTimer");
 const studentBadge = document.getElementById("studentBadge");
 
@@ -913,8 +943,75 @@ luseMatadi.setOptions({
 });
 
 // Suavização com janela deslizante
-const detectionBuffer = { ausente: 0, multiplos: 0, labial: 0, virada: 0, olhar: 0 };
+const detectionBuffer = { ausente: 0, multiplos: 0, labial: 0 };
 const THRESHOLD = 8; // frames consecutivos antes de penalizar
+
+// ══════════════════════════════════════════════
+// FUNÇÕES AUXILIARES DE GEOMETRIA
+// ══════════════════════════════════════════════
+function toDeg(rad) { return rad * 180 / Math.PI; }
+function dist2D(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
+function media(arr) { return arr.reduce((s, v) => s + v, 0) / arr.length; }
+
+function empurrarSuavizado(buf, valor) {
+  buf.push(valor);
+  if (buf.length > SMOOTH_N) buf.shift();
+  return media(buf);
+}
+
+// Ângulo aproximado de yaw (esquerda/direita) e pitch (cima/baixo) a partir da
+// profundidade relativa (z) dos landmarks laterais/verticais do rosto. Não é uma
+// estimativa de pose calibrada por câmara (isso exigiria solvePnP com os parâmetros
+// intrínsecos da câmara), por isso calibramos um "zero" pessoal nos primeiros ~1.5s
+// de sessão (assumindo que o candidato está de frente ao ecrã) e medimos o desvio
+// relativo a esse zero — é isso que é comparado ao limite de 25°.
+function calcularPose(rosto) {
+  const rEdge = rosto[234], lEdge = rosto[454];
+  const topo = rosto[10], queixo = rosto[152];
+  const yaw = toDeg(Math.atan2(lEdge.z - rEdge.z, lEdge.x - rEdge.x));
+  const pitch = toDeg(Math.atan2(queixo.z - topo.z, queixo.y - topo.y));
+  return { yaw, pitch };
+}
+
+// Eye Aspect Ratio simplificado (deteção de piscar → sinal básico de "prova de vida")
+function earOlho(rosto, topo, base, esq, dir) {
+  const vert = dist2D(rosto[topo], rosto[base]);
+  const horiz = dist2D(rosto[esq], rosto[dir]);
+  return horiz > 0 ? vert / horiz : 1;
+}
+
+// Assinatura geométrica do rosto (não é reconhecimento facial real — é uma heurística
+// de distâncias entre pontos-chave normalizadas pela distância interocular, usada só
+// para detetar trocas grosseiras de candidato a meio da prova).
+function calcularAssinatura(rosto) {
+  const interOcular = dist2D(rosto[33], rosto[263]) || 1;
+  return [1, 61, 291, 152, 10, 234, 454].map(i => dist2D(rosto[1], rosto[i]) / interOcular);
+}
+function distanciaAssinatura(a, b) {
+  let s = 0;
+  for (let i = 0; i < a.length; i++) s += Math.abs(a[i] - b[i]);
+  return s / a.length;
+}
+
+function checarAngulo(eixo, valor, state) {
+  const agora = Date.now();
+  const acimaDoLimite = Math.abs(valor) > LIMITE_ANGULO;
+  if (acimaDoLimite) {
+    if (!state.overSince) state.overSince = agora;
+    if (agora - state.overSince > HOLD_MS && agora - state.lastFlag > REPEAT_MS) {
+      const direcao = eixo === "yaw"
+        ? (valor > 0 ? "direita" : "esquerda")
+        : (valor > 0 ? "baixo" : "cima");
+      const msg = `⚠️ Olhar desviado para a ${direcao}`;
+      samuna(msg, "danger");
+      subtrair(3, "Olhar desviado para a " + direcao);
+      logEvento("ALERTA", `Olhar desviado para a ${direcao} (${Math.abs(valor).toFixed(0)}°, limite ${LIMITE_ANGULO}°)`);
+      state.lastFlag = agora;
+    }
+  } else {
+    state.overSince = 0;
+  }
+}
 
 luseMatadi.onResults((bima) => {
   if (!kuyingila) return;
@@ -930,6 +1027,7 @@ luseMatadi.onResults((bima) => {
     }
     faceStatus.textContent = "Rosto não detetado";
     faceStatus.style.color = "var(--red)";
+    if (angleTelemetry) angleTelemetry.textContent = "";
   } else {
     detectionBuffer.ausente = 0;
 
@@ -939,24 +1037,18 @@ luseMatadi.onResults((bima) => {
         samuna("⚠️ Múltiplas pessoas!", "danger");
         subtrair(10, "Presença de terceiros detetada");
         logEvento("GRAVE", "Múltiplos rostos na câmara");
+        capturarEvidencia();
         detectionBuffer.multiplos = 0;
       }
     } else {
       detectionBuffer.multiplos = 0;
       const rosto = bima.multiFaceLandmarks[0];
 
-      // Movimento labial
-      const nwaZ = Math.abs(rosto[14].y - rosto[13].y);
-      // Cabeça virada
-      const propX = (rosto[1].x - rosto[234].x) / (rosto[454].x - rosto[234].x);
-      const cabecaVirada = propX < 0.30 || propX > 0.70;
-      // Olhar desviado
-      const propOlho = (rosto[473].x - rosto[362].x) / (rosto[263].x - rosto[362].x);
-      const olharDesviado = propOlho < 0.30 || propOlho > 0.70;
-
       faceStatus.textContent = "Rosto detetado ✓";
       faceStatus.style.color = "var(--green)";
 
+      // ── Movimento labial (indício de fala) ──
+      const nwaZ = Math.abs(rosto[14].y - rosto[13].y);
       if (nwaZ > 0.07) {
         detectionBuffer.labial++;
         if (detectionBuffer.labial > THRESHOLD) {
@@ -965,21 +1057,58 @@ luseMatadi.onResults((bima) => {
         }
       } else detectionBuffer.labial = Math.max(0, detectionBuffer.labial - 1);
 
-      if (cabecaVirada) {
-        detectionBuffer.virada++;
-        if (detectionBuffer.virada > THRESHOLD) {
-          condicaoInfracao = true; msgInfracao = "⚠️ Cabeça virada fora do eixo";
-          detectionBuffer.virada = 0;
+      // ── Postura da cabeça: calibração e limite de 25° ──
+      const poseCrua = calcularPose(rosto);
+      if (!calibrado) {
+        calibAmostras.push(poseCrua);
+        if (calibAmostras.length >= CALIB_FRAMES) {
+          yawOffset = media(calibAmostras.map(s => s.yaw));
+          pitchOffset = media(calibAmostras.map(s => s.pitch));
+          calibrado = true;
+          logEvento("SISTEMA", "Calibração de postura concluída — 0° = posição inicial do candidato");
+        } else if (angleTelemetry) {
+          angleTelemetry.textContent = "A calibrar posição inicial…";
         }
-      } else detectionBuffer.virada = Math.max(0, detectionBuffer.virada - 1);
+      } else {
+        const yaw = empurrarSuavizado(yawBuf, poseCrua.yaw - yawOffset);
+        const pitch = empurrarSuavizado(pitchBuf, poseCrua.pitch - pitchOffset);
+        if (angleTelemetry) {
+          angleTelemetry.textContent = `yaw ${yaw.toFixed(0)}° · pitch ${pitch.toFixed(0)}° (limite ±${LIMITE_ANGULO}°)`;
+        }
+        checarAngulo("yaw", yaw, yawState);
+        checarAngulo("pitch", pitch, pitchState);
 
-      if (olharDesviado) {
-        detectionBuffer.olhar++;
-        if (detectionBuffer.olhar > THRESHOLD) {
-          condicaoInfracao = true; msgInfracao = "⚠️ Olhar fora do ecrã";
-          detectionBuffer.olhar = 0;
+        // ── Liveness: deteção de piscar ──
+        const ear = (earOlho(rosto, 159, 145, 33, 133) + earOlho(rosto, 386, 374, 362, 263)) / 2;
+        if (ear < 0.15) {
+          olhoFechado = true;
+        } else {
+          if (olhoFechado) ultimoPiscar = Date.now();
+          olhoFechado = false;
         }
-      } else detectionBuffer.olhar = Math.max(0, detectionBuffer.olhar - 1);
+        if (ultimoPiscar === 0) ultimoPiscar = Date.now();
+        if (Date.now() - ultimoPiscar > 20000 && Date.now() - ultimoAvisoLiveness > 30000) {
+          subtrair(5, "Ausência prolongada de piscar (verificar prova de vida)");
+          logEvento("ALERTA", "Nenhum piscar detetado nos últimos 20s — possível imagem estática");
+          ultimoAvisoLiveness = Date.now();
+        }
+
+        // ── Assinatura de identidade (só em pose quase frontal, para não distorcer) ──
+        if (Math.abs(yaw) < 15 && Math.abs(pitch) < 15) {
+          const assinaturaAtual = calcularAssinatura(rosto);
+          if (!assinaturaReferencia && calibrado) {
+            assinaturaReferencia = assinaturaAtual;
+          } else if (assinaturaReferencia && Date.now() - ultimaVerifIdentidade > 15000) {
+            ultimaVerifIdentidade = Date.now();
+            const d = distanciaAssinatura(assinaturaReferencia, assinaturaAtual);
+            if (d > 0.12) {
+              subtrair(15, "Possível troca de candidato");
+              logEvento("GRAVE", `Assinatura facial divergente da inicial (Δ=${d.toFixed(2)}) — verificar identidade`);
+              capturarEvidencia();
+            }
+          }
+        }
+      }
     }
   }
 
@@ -993,7 +1122,7 @@ luseMatadi.onResults((bima) => {
       logEvento("ALERTA", msgInfracao);
       inicioDistracao = Date.now();
     }
-  } else {
+  } else if (!condicaoInfracao && Math.abs((yawBuf.length ? yawBuf[yawBuf.length - 1] : 0)) <= LIMITE_ANGULO) {
     estaDistraido = false;
     samuna("✅ Foco Validado", "ok");
   }
@@ -1073,7 +1202,7 @@ function logEvento(tipo, descricao) {
 function buildSystemPrompt() {
   const nome = document.getElementById("mZina").value;
   const num = document.getElementById("mNtalu").value;
-  return `Você é um assistente de vigilância académica da ProctorAI. Está a monitorizar o exame de ${nome} (Nº ${num}).
+  return `Você é um assistente de vigilância académica da Virtus-Detector. Está a monitorizar o exame de ${nome} (Nº ${num}).
 
 A sessão está a decorrer em tempo real. Os eventos registados automaticamente até agora são:
 ${sessionLogs.map(l => `[${l.ts}] ${l.tipo}: ${l.descricao}`).join("\n") || "Nenhum evento registado."}
@@ -1198,18 +1327,138 @@ async function wunikina(stream) {
 // ══════════════════════════════════════════════
 // CAPTURA DE FOTOS
 // ══════════════════════════════════════════════
+const MAX_FOTOS = 10;
+
+function tirarSnapshot() {
+  const c = document.createElement("canvas");
+  c.width = 320; c.height = 240;
+  c.getContext("2d").drawImage(vCam, 0, 0, 320, 240);
+  return c.toDataURL("image/jpeg", 0.2);
+}
+
 function capturarFoto() {
-  if (galeriaFotos.length < 4 && vCam.readyState === 4 && kuyingila) {
-    const c = document.createElement("canvas");
-    c.width = 320; c.height = 240;
-    c.getContext("2d").drawImage(vCam, 0, 0, 320, 240);
-    galeriaFotos.push(c.toDataURL("image/jpeg", 0.15));
-    logEvento("SISTEMA", `Fotografia ${galeriaFotos.length}/4 capturada`);
-    if (galeriaFotos.length < 4) {
-      const nextDelay = 60000 + Math.random() * 30000; // 60-90s aleatório
+  if (galeriaFotos.length < MAX_FOTOS && vCam.readyState === 4 && kuyingila) {
+    galeriaFotos.push(tirarSnapshot());
+    logEvento("SISTEMA", `Fotografia ${galeriaFotos.length}/${MAX_FOTOS} capturada`);
+    if (galeriaFotos.length < MAX_FOTOS) {
+      const nextDelay = 25000 + Math.random() * 15000; // 25-40s aleatório
       setTimeout(capturarFoto, nextDelay);
     }
   }
+}
+
+// Captura imediata usada como evidência quando ocorre um evento grave
+// (fora da cadência normal de fotos, sem contar para o limite MAX_FOTOS)
+function capturarEvidencia() {
+  if (!kuyingila || vCam.readyState !== 4) return;
+  galeriaFotos.push(tirarSnapshot());
+  logEvento("SISTEMA", "Fotografia de evidência capturada");
+}
+
+// ══════════════════════════════════════════════
+// DETEÇÃO DE OBJETOS (telemóvel, livros, 2º ecrã…)
+// ══════════════════════════════════════════════
+async function carregarModeloObjetos() {
+  try {
+    modeloObjetos = await cocoSsd.load();
+    logEvento("SISTEMA", "Modelo de deteção de objetos carregado");
+  } catch (e) {
+    logEvento("SISTEMA", "Modelo de deteção de objetos indisponível");
+  }
+}
+
+async function verificarObjetos() {
+  if (!modeloObjetos || !kuyingila || vCam.readyState !== 4) return;
+  if (Date.now() - ultimaVerifObjetos < 4000) return;
+  ultimaVerifObjetos = Date.now();
+  try {
+    const previsoes = await modeloObjetos.detect(vCam);
+    previsoes.forEach(p => {
+      const nomePt = OBJETOS_PROIBIDOS[p.class];
+      if (nomePt && p.score > 0.6) {
+        samuna(`🚨 Objeto detetado: ${nomePt}`, "danger");
+        subtrair(10, "Objeto detetado: " + nomePt);
+        logEvento("GRAVE", `Objeto suspeito detetado: ${nomePt} (confiança ${(p.score * 100).toFixed(0)}%)`);
+        capturarEvidencia();
+      }
+    });
+  } catch (e) { /* deteção falhou neste frame, tentar no próximo ciclo */ }
+}
+
+// ══════════════════════════════════════════════
+// TELA CHEIA OBRIGATÓRIA
+// ══════════════════════════════════════════════
+async function pedirTelaCheia() {
+  try {
+    if (!document.fullscreenElement) await document.documentElement.requestFullscreen();
+  } catch (e) { /* alguns browsers/contextos bloqueiam o pedido — seguimos sem travar a sessão */ }
+}
+
+document.addEventListener("fullscreenchange", () => {
+  if (kuyingila && !document.fullscreenElement) {
+    samuna("🚨 Saiu do ecrã inteiro!", "danger");
+    subtrair(10, "Saiu do modo de ecrã inteiro");
+    logEvento("GRAVE", "Candidato saiu do modo de ecrã inteiro");
+    showToast("Volte ao ecrã inteiro para continuar o exame.", "error", 5000);
+  }
+});
+
+// ══════════════════════════════════════════════
+// DEVTOOLS / CÓPIA / MENU DE CONTEXTO / FOCO DA JANELA
+// ══════════════════════════════════════════════
+setInterval(() => {
+  if (!kuyingila) return;
+  const largDiff = window.outerWidth - window.innerWidth;
+  const altDiff = window.outerHeight - window.innerHeight;
+  const aberto = largDiff > 160 || altDiff > 160;
+  if (aberto && !devtoolsAberto) {
+    devtoolsAberto = true;
+    subtrair(15, "Ferramentas de programador abertas");
+    logEvento("GRAVE", "Possível abertura de DevTools detetada");
+    samuna("🚨 Ferramentas de programador detetadas!", "danger");
+  } else if (!aberto) {
+    devtoolsAberto = false;
+  }
+}, 2000);
+
+["contextmenu", "copy", "cut", "paste"].forEach(evt => {
+  document.addEventListener(evt, (e) => {
+    if (kuyingila) {
+      e.preventDefault();
+      logEvento("ALERTA", `Tentativa de "${evt}" bloqueada`);
+    }
+  });
+});
+
+document.addEventListener("keydown", (e) => {
+  if (!kuyingila) return;
+  const combinacaoSuspeita = e.key === "F12" ||
+    (e.ctrlKey && e.shiftKey && ["I", "J", "C"].includes(e.key)) ||
+    (e.ctrlKey && e.key.toLowerCase() === "u");
+  if (combinacaoSuspeita) {
+    e.preventDefault();
+    subtrair(15, "Tentativa de abrir DevTools / código-fonte");
+    logEvento("GRAVE", "Atalho de DevTools/código-fonte bloqueado (" + e.key + ")");
+  }
+});
+
+window.addEventListener("blur", () => {
+  if (kuyingila) logEvento("ALERTA", "Janela perdeu o foco (possível Alt+Tab ou outra aplicação)");
+});
+
+// ══════════════════════════════════════════════
+// MÚLTIPLOS MONITORES (Window Management API, quando suportada)
+// ══════════════════════════════════════════════
+async function verificarMultiploMonitor() {
+  try {
+    if ("getScreenDetails" in window) {
+      const detalhes = await window.getScreenDetails();
+      if (detalhes.screens.length > 1) {
+        subtrair(10, "Múltiplos monitores detetados");
+        logEvento("GRAVE", `Detetados ${detalhes.screens.length} ecrãs ligados ao dispositivo`);
+      }
+    }
+  } catch (e) { /* API indisponível ou permissão recusada — não é bloqueante */ }
 }
 
 // ══════════════════════════════════════════════
@@ -1227,6 +1476,10 @@ document.getElementById("yantikaBtn").addEventListener("click", async () => {
   headerDot.classList.add("active");
   headerStatusText.textContent = "Sessão Ativa";
   startTimer();
+
+  await pedirTelaCheia();
+  verificarMultiploMonitor();
+  carregarModeloObjetos();
 
   // ECRÃ PARTILHADO
   try {
@@ -1262,6 +1515,7 @@ document.getElementById("yantikaBtn").addEventListener("click", async () => {
     function luzingu() {
       if (kuyingila) {
         luseMatadi.send({ image: vCam });
+        verificarObjetos();
         requestAnimationFrame(luzingu);
       }
     }
@@ -1275,6 +1529,51 @@ document.getElementById("yantikaBtn").addEventListener("click", async () => {
     location.reload();
   }
 });
+
+// ══════════════════════════════════════════════
+// RELATÓRIO PDF
+// ══════════════════════════════════════════════
+function gerarRelatorioPDF(dados) {
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    let y = 20;
+
+    doc.setFontSize(16);
+    doc.text("Virtus-Detector — Relatório de Sessão", 14, y); y += 10;
+
+    doc.setFontSize(11);
+    doc.text(`Candidato: ${dados.nome}`, 14, y); y += 7;
+    doc.text(`Número: ${dados.numero}`, 14, y); y += 7;
+    doc.text(`Índice de Integridade Final: ${dados.confianca}%`, 14, y); y += 7;
+    doc.text(`Data: ${new Date().toLocaleString("pt-PT")}`, 14, y); y += 10;
+
+    doc.setFontSize(12); doc.text("Infrações:", 14, y); y += 7;
+    doc.setFontSize(10);
+    (infracoes.length ? infracoes : ["Nenhuma infração detetada"]).forEach(i => {
+      if (y > 275) { doc.addPage(); y = 20; }
+      doc.text("• " + i, 16, y); y += 6;
+    });
+    y += 4;
+
+    doc.setFontSize(12); doc.text("Resumo da IA:", 14, y); y += 7;
+    doc.setFontSize(10);
+    const linhas = doc.splitTextToSize(dados.resumoIA || "Indisponível.", 180);
+    if (y + linhas.length * 5 > 280) { doc.addPage(); y = 20; }
+    doc.text(linhas, 14, y); y += linhas.length * 5 + 6;
+
+    doc.setFontSize(12); doc.text("Registo de Eventos:", 14, y); y += 7;
+    doc.setFontSize(9);
+    sessionLogs.forEach(l => {
+      if (y > 285) { doc.addPage(); y = 20; }
+      doc.text(`[${l.ts}] ${l.tipo}: ${l.descricao}`, 14, y); y += 5;
+    });
+
+    doc.save(`relatorio_${(dados.nome || "candidato").replace(/\s+/g, "_")}.pdf`);
+  } catch (e) {
+    logEvento("SISTEMA", "Não foi possível gerar o PDF do relatório localmente");
+  }
+}
 
 // ══════════════════════════════════════════════
 // FINALIZAR SESSÃO
@@ -1335,6 +1634,8 @@ finalizarBtn.addEventListener("click", async () => {
       if (i < 2) await new Promise(r => setTimeout(r, 2000));
     }
   }
+
+  gerarRelatorioPDF(dados);
 
   if (enviado) {
     showToast("Relatório enviado com sucesso.", "success", 5000);
