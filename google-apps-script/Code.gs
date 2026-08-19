@@ -28,6 +28,7 @@ const NOME_BASE_DADOS = "Virtus-Detector — Base de Dados";
 const FOLHA_PROVAS = "Provas";
 const FOLHA_RELATORIOS = "Relatorios";
 const FOLHA_RESPOSTAS = "Respostas";
+const FOLHA_ACESSOS = "Acessos";
 const ASSINATURA = "Virtus-Detector © Virtus LDA — Criado por António Rundy Manuel Fernando";
 
 // ══════════════════════════════════════════════
@@ -57,12 +58,39 @@ function obterOuCriarFolha(ss, nome, cabecalho) {
 
 // ══════════════════════════════════════════════
 // GET — o aluno pede as perguntas de uma prova: ?prova=ID
+// Ou verifica/regista o acesso único por email: ?prova=ID&verificarAcesso=email
 // ══════════════════════════════════════════════
 function doGet(e) {
   const id = e.parameter.prova;
   if (!id) return saidaJSON({ erro: "Parâmetro 'prova' em falta." });
+
+  if (e.parameter.verificarAcesso) {
+    return saidaJSON(verificarERegistarAcesso(id, e.parameter.verificarAcesso));
+  }
+
   const prova = obterProva(id);
   return saidaJSON(prova || { erro: "Prova não encontrada." });
+}
+
+// Link de utilização única por email: a primeira verificação bem-sucedida já
+// regista o acesso nesse momento — qualquer tentativa seguinte com o mesmo
+// email para a mesma prova é recusada, mesmo que o aluno não chegue a submeter.
+function verificarERegistarAcesso(provaId, email) {
+  const emailNormalizado = String(email).trim().toLowerCase();
+  if (!emailNormalizado || emailNormalizado.indexOf("@") === -1) {
+    return { permitido: false, motivo: "Email inválido." };
+  }
+
+  const ss = obterBaseDados();
+  const sheet = obterOuCriarFolha(ss, FOLHA_ACESSOS, ["ProvaID", "Email", "DataAcesso"]);
+  const linhas = sheet.getDataRange().getValues();
+  for (let i = 1; i < linhas.length; i++) {
+    if (String(linhas[i][0]) === String(provaId) && String(linhas[i][1]).toLowerCase() === emailNormalizado) {
+      return { permitido: false, motivo: "Este link já foi utilizado com este email." };
+    }
+  }
+  sheet.appendRow([provaId, emailNormalizado, new Date()]);
+  return { permitido: true };
 }
 
 function obterProva(id) {
@@ -203,6 +231,7 @@ function gerarPdfVigilancia(dados) {
   estilizarTabelaInfo(body.appendTable([
     ["Candidato", dados.nome || "—"],
     ["Número", dados.numero || "—"],
+    ["Email", dados.emailAluno || "—"],
     ["Prova associada", dados.provaTitulo || "—"],
     ["Duração da sessão", est.duracaoFormatada || "—"],
     ["Total de eventos registados", String(est.totalEventos != null ? est.totalEventos : 0)],
@@ -272,6 +301,7 @@ function gerarPdfFolhaRespostas(dados) {
   estilizarTabelaInfo(body.appendTable([
     ["Candidato", dados.nome || "—"],
     ["Número", dados.numero || "—"],
+    ["Email", dados.emailAluno || "—"],
     ["Índice de Integridade", dados.confianca + "%"]
   ]));
   body.appendParagraph("").setSpacingAfter(4);
@@ -280,6 +310,18 @@ function gerarPdfFolhaRespostas(dados) {
     const pergPar = body.appendParagraph((i + 1) + ". " + p.pergunta);
     pergPar.setSpacingBefore(16);
     pergPar.editAsText().setBold(true).setFontSize(12).setForegroundColor("#12151d");
+
+    if (p.imagem) {
+      try {
+        const blobPergunta = base64ParaBlob(p.imagem, "pergunta_" + (i + 1) + ".jpg");
+        const imgPergunta = body.appendImage(blobPergunta);
+        const larguraOriginal = imgPergunta.getWidth();
+        const alturaOriginal = imgPergunta.getHeight();
+        const larguraAlvo = 320;
+        imgPergunta.setWidth(larguraAlvo);
+        imgPergunta.setHeight(Math.round(alturaOriginal * (larguraAlvo / larguraOriginal)));
+      } catch (err) { /* imagem inválida — ignora e continua */ }
+    }
 
     const resposta = (dados.respostas && dados.respostas[i] != null && dados.respostas[i] !== "")
       ? String(dados.respostas[i])
@@ -344,7 +386,7 @@ function enviarEmailRelatorio(dados) {
 // ══════════════════════════════════════════════
 function registarNaFolha(dados) {
   const ss = obterBaseDados();
-  const sheet = obterOuCriarFolha(ss, FOLHA_RELATORIOS, ["Data", "Prova", "Nome", "Número", "Índice", "Duração", "Alertas", "Graves", "Observações"]);
+  const sheet = obterOuCriarFolha(ss, FOLHA_RELATORIOS, ["Data", "Prova", "Nome", "Número", "Email", "Índice", "Duração", "Alertas", "Graves", "Observações"]);
   const est = dados.estatisticas || {};
   const porTipo = est.eventosPorTipo || {};
   sheet.appendRow([
@@ -352,6 +394,7 @@ function registarNaFolha(dados) {
     dados.provaTitulo || "",
     dados.nome,
     dados.numero,
+    dados.emailAluno || "",
     dados.confianca,
     est.duracaoFormatada || "",
     porTipo.ALERTA || 0,
@@ -362,9 +405,9 @@ function registarNaFolha(dados) {
 
 function registarRespostas(dados) {
   const ss = obterBaseDados();
-  const sheet = obterOuCriarFolha(ss, FOLHA_RESPOSTAS, ["Data", "Prova", "Nome", "Número", "Pergunta", "Resposta"]);
+  const sheet = obterOuCriarFolha(ss, FOLHA_RESPOSTAS, ["Data", "Prova", "Nome", "Número", "Email", "Pergunta", "Resposta"]);
   dados.perguntas.forEach(function (p, i) {
     const resposta = (dados.respostas && dados.respostas[i] != null) ? dados.respostas[i] : "";
-    sheet.appendRow([new Date(), dados.provaTitulo || "", dados.nome, dados.numero, p.pergunta, resposta]);
+    sheet.appendRow([new Date(), dados.provaTitulo || "", dados.nome, dados.numero, dados.emailAluno || "", p.pergunta, resposta]);
   });
 }

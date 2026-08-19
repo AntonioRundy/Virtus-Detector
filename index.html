@@ -123,8 +123,8 @@
   }
 
   /* ── TELA DE LOGIN ── */
-  #loginScreen {
-    display: flex;
+  #loginScreen, #emailGateScreen {
+    display: none;
     align-items: center;
     justify-content: center;
     min-height: calc(100vh - 73px);
@@ -308,6 +308,15 @@
     color: var(--white);
     margin-bottom: 10px;
     line-height: 1.5;
+  }
+
+  .prova-pergunta-imagem {
+    max-width: 100%;
+    max-height: 320px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    margin-bottom: 12px;
+    display: block;
   }
 
   .prova-resposta-texto {
@@ -760,6 +769,28 @@
   </div>
 </header>
 
+<!-- ══════════ PORTÃO DE ACESSO (só aparece com ?prova=ID) ══════════ -->
+<div id="emailGateScreen">
+  <div class="login-card">
+    <h2>Acesso à Prova</h2>
+    <div style="background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); padding:12px 16px; margin-bottom:20px;">
+      <div style="font-size:11px; color:var(--text2); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Prova</div>
+      <div style="font-size:14px; color:var(--white); font-weight:600;" id="gateProvaTitulo">A carregar…</div>
+    </div>
+
+    <div class="consent-box">
+      <strong>⚠️ Link de utilização única:</strong> esta prova só pode ser acedida <strong>uma vez</strong> por email. Apenas o primeiro acesso é válido — se voltar a abrir este link (ou o partilhar), o acesso será recusado.
+    </div>
+
+    <label>O seu email</label>
+    <input type="text" id="gateEmail" placeholder="nome@escola.com" autocomplete="off">
+
+    <button class="btn-primary" id="gateContinuarBtn">Continuar</button>
+
+    <div id="gateErro" style="display:none; margin-top:16px; background:rgba(224,105,122,0.08); border:1px solid rgba(224,105,122,0.3); border-radius:var(--radius); padding:12px 16px; font-size:13px; color:var(--red2);"></div>
+  </div>
+</div>
+
 <!-- ══════════ LOGIN ══════════ -->
 <div id="loginScreen">
   <div class="login-card">
@@ -772,7 +803,7 @@
     </div>
 
     <div class="consent-box">
-      <strong>⚠️ Aviso de Privacidade:</strong> Esta sessão captura vídeo, áudio e fotografias periódicas, exige modo de ecrã inteiro, monitoriza a orientação da cabeça/olhar (desvios superiores a 25° são registados), deteta objetos não autorizados (telemóveis, livros, segundos ecrãs) e bloqueia copiar/colar e atalhos de programador. Os dados são processados automaticamente e enviados ao supervisor responsável.
+      <strong>⚠️ Aviso de Privacidade:</strong> Esta sessão captura vídeo, áudio e fotografias periódicas, exige modo de ecrã inteiro, monitoriza a orientação da cabeça/olhar (qualquer desvio superior a 10° — esquerda, direita, cima ou baixo — é registado), deteta objetos não autorizados (telemóveis, livros, segundos ecrãs) e bloqueia copiar/colar e atalhos de programador. Os dados são processados automaticamente e enviados ao supervisor responsável.
     </div>
 
     <label>Nome Completo</label>
@@ -936,7 +967,7 @@ let iaHistory = [];
 let calibrado = false;
 const calibAmostras = [];
 const CALIB_FRAMES = 45;      // ~1.5s de vídeo a assumir que o candidato está de frente
-const LIMITE_ANGULO = 25;     // graus — pedido explícito do utilizador
+const LIMITE_ANGULO = 10;     // graus — qualquer eixo (yaw OU pitch) isoladamente já conta
 const HOLD_MS = 700;          // desvio precisa de se manter este tempo antes de contar
 const REPEAT_MS = 3000;       // intervalo mínimo entre registos repetidos do mesmo desvio
 let yawOffset = 0, pitchOffset = 0;
@@ -996,6 +1027,19 @@ const provaPerguntasEl = document.getElementById("provaPerguntas");
 // PROVA / TAREFA (?prova=ID na URL)
 // ══════════════════════════════════════════════
 let provaAtual = null;
+let emailAluno = "";
+
+// Decide, sem esperar por nenhum fetch, qual ecrã mostrar primeiro: se o link
+// tem ?prova=ID, mostra sempre o portão de email antes de tudo o resto.
+function inicializarFluxoAcesso() {
+  const params = new URLSearchParams(location.search);
+  const id = params.get("prova");
+  if (id) {
+    document.getElementById("emailGateScreen").style.display = "flex";
+  } else {
+    document.getElementById("loginScreen").style.display = "flex";
+  }
+}
 
 async function carregarProva() {
   const params = new URLSearchParams(location.search);
@@ -1007,16 +1051,61 @@ async function carregarProva() {
     const prova = await resp.json();
     if (prova.erro) {
       showToast("Prova não encontrada: " + prova.erro, "error", 5000);
+      document.getElementById("gateProvaTitulo").textContent = "Prova não encontrada";
       return;
     }
     provaAtual = prova;
     document.getElementById("provaBadgeLogin").style.display = "block";
     document.getElementById("provaBadgeTitulo").textContent = prova.titulo || "Prova sem título";
+    document.getElementById("gateProvaTitulo").textContent = prova.titulo || "Prova sem título";
     renderProva();
   } catch (e) {
     showToast("Não foi possível carregar a prova associada a este link.", "error", 5000);
+    document.getElementById("gateProvaTitulo").textContent = "Erro ao carregar a prova";
   }
 }
+
+// Verifica no servidor se este email já usou este link; se for a primeira vez,
+// o próprio servidor já regista o uso nesse momento (não espera pela submissão final).
+document.getElementById("gateContinuarBtn").addEventListener("click", async () => {
+  const email = document.getElementById("gateEmail").value.trim().toLowerCase();
+  const gateErro = document.getElementById("gateErro");
+  const btn = document.getElementById("gateContinuarBtn");
+  gateErro.style.display = "none";
+
+  if (!email || !email.includes("@")) {
+    return showToast("Introduza um email válido.", "error");
+  }
+  if (!provaAtual) {
+    return showToast("A prova ainda está a carregar, aguarde um instante.", "error");
+  }
+
+  btn.disabled = true;
+  btn.textContent = "A verificar...";
+
+  try {
+    const resp = await fetch(
+      WEBHOOK_URL + "?prova=" + encodeURIComponent(provaAtual.id) +
+      "&verificarAcesso=" + encodeURIComponent(email)
+    );
+    const resultado = await resp.json();
+
+    if (!resultado.permitido) {
+      gateErro.textContent = "🚫 " + (resultado.motivo || "Este link já foi utilizado.");
+      gateErro.style.display = "block";
+      btn.textContent = "Acesso Negado";
+      return; // fica desativado — não permite nova tentativa nesta carga da página
+    }
+
+    emailAluno = email;
+    document.getElementById("emailGateScreen").style.display = "none";
+    document.getElementById("loginScreen").style.display = "flex";
+  } catch (e) {
+    showToast("Erro ao verificar o acesso. Tente novamente.", "error");
+    btn.disabled = false;
+    btn.textContent = "Continuar";
+  }
+});
 
 function renderProva() {
   if (!provaAtual) return;
@@ -1037,6 +1126,14 @@ function renderProva() {
     texto.className = "prova-pergunta-texto";
     texto.textContent = p.pergunta;
     bloco.appendChild(texto);
+
+    if (p.imagem) {
+      const img = document.createElement("img");
+      img.src = p.imagem;
+      img.className = "prova-pergunta-imagem";
+      img.alt = "Figura da pergunta " + (i + 1);
+      bloco.appendChild(img);
+    }
 
     if (p.tipo === "multipla" && Array.isArray(p.opcoes) && p.opcoes.length) {
       const opcoesDiv = document.createElement("div");
@@ -1074,6 +1171,7 @@ function coletarRespostas() {
   });
 }
 
+inicializarFluxoAcesso();
 carregarProva();
 
 // ══════════════════════════════════════════════
@@ -1787,6 +1885,7 @@ finalizarBtn.addEventListener("click", async () => {
     destinatario: "antoniorundy6@gmail.com",
     provaId: provaAtual ? provaAtual.id : "",
     provaTitulo: provaAtual ? provaAtual.titulo : "",
+    emailAluno: emailAluno,
     perguntas: provaAtual ? provaAtual.perguntas : [],
     respostas: provaAtual ? coletarRespostas() : []
   };
