@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="António Rundy Manuel Fernando — Virtus LDA">
 <title>Virtus-Detector — Painel do Professor</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
@@ -223,6 +224,14 @@
     pointer-events: none;
   }
   .toast.show { opacity: 1; transform: translateY(0); }
+
+  #brandFooter {
+    text-align: center;
+    font-size: 11.5px;
+    color: var(--text2);
+    padding: 4px 24px 28px;
+    opacity: 0.7;
+  }
 </style>
 </head>
 <body>
@@ -263,6 +272,8 @@
     </div>
   </div>
 </main>
+
+<footer id="brandFooter">Virtus-Detector © Virtus LDA — Criado por António Rundy Manuel Fernando</footer>
 
 <div class="toast" id="toast"></div>
 

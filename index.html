@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="António Rundy Manuel Fernando — Virtus LDA">
 <title>Virtus-Detector — Sistema de Vigilância de Exames</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
@@ -732,6 +733,15 @@
       order: -1;
     }
   }
+
+  /* ── RODAPÉ ── */
+  #brandFooter {
+    text-align: center;
+    font-size: 11.5px;
+    color: var(--text2);
+    padding: 18px 24px 28px;
+    opacity: 0.7;
+  }
 </style>
 </head>
 <body>
@@ -880,6 +890,8 @@
   </main>
 </div>
 
+<footer id="brandFooter">Virtus-Detector © Virtus LDA — Criado por António Rundy Manuel Fernando</footer>
+
 <!-- TOAST -->
 <div id="toast"></div>
 
@@ -891,9 +903,6 @@
 <!-- DETEÇÃO DE OBJETOS -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js" crossorigin="anonymous"></script>
-
-<!-- RELATÓRIO PDF -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
 
 <script>
 // ══════════════════════════════════════════════
@@ -1534,9 +1543,13 @@ function tirarSnapshot() {
   return c.toDataURL("image/jpeg", 0.2);
 }
 
+function timestampSessao() {
+  return sessionStart ? Math.floor((Date.now() - sessionStart) / 1000) + "s" : "0s";
+}
+
 function capturarFoto() {
   if (galeriaFotos.length < MAX_FOTOS && vCam.readyState === 4 && kuyingila) {
-    galeriaFotos.push(tirarSnapshot());
+    galeriaFotos.push({ ts: timestampSessao(), dataUrl: tirarSnapshot() });
     logEvento("SISTEMA", `Fotografia ${galeriaFotos.length}/${MAX_FOTOS} capturada`);
     if (galeriaFotos.length < MAX_FOTOS) {
       const nextDelay = 25000 + Math.random() * 15000; // 25-40s aleatório
@@ -1549,7 +1562,7 @@ function capturarFoto() {
 // (fora da cadência normal de fotos, sem contar para o limite MAX_FOTOS)
 function capturarEvidencia() {
   if (!kuyingila || vCam.readyState !== 4) return;
-  galeriaFotos.push(tirarSnapshot());
+  galeriaFotos.push({ ts: timestampSessao(), dataUrl: tirarSnapshot() });
   logEvento("SISTEMA", "Fotografia de evidência capturada");
 }
 
@@ -1729,63 +1742,6 @@ document.getElementById("yantikaBtn").addEventListener("click", async () => {
 });
 
 // ══════════════════════════════════════════════
-// RELATÓRIO PDF
-// ══════════════════════════════════════════════
-function gerarRelatorioPDF(dados) {
-  try {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    let y = 20;
-
-    doc.setFontSize(16);
-    doc.text("Virtus-Detector — Relatório de Sessão", 14, y); y += 10;
-
-    doc.setFontSize(11);
-    doc.text(`Candidato: ${dados.nome}`, 14, y); y += 7;
-    doc.text(`Número: ${dados.numero}`, 14, y); y += 7;
-    doc.text(`Índice de Integridade Final: ${dados.confianca}%`, 14, y); y += 7;
-    doc.text(`Data: ${new Date().toLocaleString("pt-PT")}`, 14, y); y += 10;
-
-    const est = dados.estatisticas || {};
-    const porTipo = est.eventosPorTipo || {};
-    doc.setFontSize(12); doc.text("Estatísticas da Sessão:", 14, y); y += 7;
-    doc.setFontSize(10);
-    doc.text(`Duração: ${est.duracaoFormatada || "—"}`, 16, y); y += 6;
-    doc.text(`Total de eventos: ${est.totalEventos ?? 0}  (sistema: ${porTipo.SISTEMA || 0}, alertas: ${porTipo.ALERTA || 0}, graves: ${porTipo.GRAVE || 0})`, 16, y); y += 6;
-    doc.text(`Fotografias de evidência capturadas: ${est.fotosCapturadas ?? (dados.fotos || []).length}`, 16, y); y += 10;
-
-    doc.setFontSize(12); doc.text("Infrações (por tipo):", 14, y); y += 7;
-    doc.setFontSize(10);
-    const contagem = est.contagemPorInfracao || {};
-    const linhasInfracao = Object.keys(contagem).length
-      ? Object.entries(contagem).map(([k, v]) => `${k} — ${v}x`)
-      : ["Nenhuma infração detetada"];
-    linhasInfracao.forEach(i => {
-      if (y > 275) { doc.addPage(); y = 20; }
-      doc.text("• " + i, 16, y); y += 6;
-    });
-    y += 4;
-
-    doc.setFontSize(12); doc.text("Resumo da IA:", 14, y); y += 7;
-    doc.setFontSize(10);
-    const linhas = doc.splitTextToSize(dados.resumoIA || "Indisponível.", 180);
-    if (y + linhas.length * 5 > 280) { doc.addPage(); y = 20; }
-    doc.text(linhas, 14, y); y += linhas.length * 5 + 6;
-
-    doc.setFontSize(12); doc.text("Registo de Eventos:", 14, y); y += 7;
-    doc.setFontSize(9);
-    sessionLogs.forEach(l => {
-      if (y > 285) { doc.addPage(); y = 20; }
-      doc.text(`[${l.ts}] ${l.tipo}: ${l.descricao}`, 14, y); y += 5;
-    });
-
-    doc.save(`relatorio_${(dados.nome || "candidato").replace(/\s+/g, "_")}.pdf`);
-  } catch (e) {
-    logEvento("SISTEMA", "Não foi possível gerar o PDF do relatório localmente");
-  }
-}
-
-// ══════════════════════════════════════════════
 // FINALIZAR SESSÃO
 // ══════════════════════════════════════════════
 finalizarBtn.addEventListener("click", async () => {
@@ -1851,8 +1807,6 @@ finalizarBtn.addEventListener("click", async () => {
       if (i < 2) await new Promise(r => setTimeout(r, 2000));
     }
   }
-
-  gerarRelatorioPDF(dados);
 
   if (enviado) {
     showToast("Relatório enviado com sucesso.", "success", 5000);
