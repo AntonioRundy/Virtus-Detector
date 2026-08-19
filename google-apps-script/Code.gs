@@ -441,3 +441,24 @@ function registarRespostas(dados) {
     sheet.appendRow([new Date(), dados.provaTitulo || "", dados.nome, dados.numero, dados.emailAluno || "", p.pergunta, resposta]);
   });
 }
+
+// ══════════════════════════════════════════════
+// FUNÇÕES DE TESTE MANUAL (executar diretamente no editor, para diagnóstico)
+// ══════════════════════════════════════════════
+function testeEnviarEmail() {
+  MailApp.sendEmail({
+    to: DESTINATARIO,
+    subject: "Teste Virtus-Detector — Email",
+    htmlBody: "<p>Se recebeu isto, o envio básico de email funciona.</p>"
+  });
+  Logger.log("Email de teste enviado para: " + DESTINATARIO);
+}
+
+function testeGerarPdf() {
+  const doc = DocumentApp.create("teste_pdf_" + Date.now());
+  doc.getBody().appendParagraph("Teste de geração de PDF.");
+  doc.saveAndClose();
+  const pdf = DriveApp.getFileById(doc.getId()).getAs(MimeType.PDF);
+  DriveApp.getFileById(doc.getId()).setTrashed(true);
+  Logger.log("PDF gerado com sucesso: " + pdf.getName());
+}
