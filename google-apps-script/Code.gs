@@ -230,18 +230,45 @@ function docParaPdfEDescartar(doc, nomeFicheiro) {
   return pdf;
 }
 
+// Grade compacta de miniaturas (4 por linha, sem bordas) — mantém o relatório
+// numa única página mesmo com várias fotografias de evidência.
+function inserirGridFotos(body, fotos) {
+  if (!fotos.length) return;
+  body.appendParagraph("Fotografias de Evidência").setHeading(DocumentApp.ParagraphHeading.HEADING2).setSpacingBefore(10);
+
+  const colunas = 4;
+  const numLinhas = Math.ceil(fotos.length / colunas);
+  const grade = [];
+  for (let r = 0; r < numLinhas; r++) grade.push(new Array(colunas).fill(""));
+
+  const tabela = body.appendTable(grade);
+  tabela.setBorderWidth(0);
+
+  fotos.forEach(function (foto, i) {
+    const cell = tabela.getRow(Math.floor(i / colunas)).getCell(i % colunas);
+    try {
+      const dataUrl = (foto && foto.dataUrl) ? foto.dataUrl : foto;
+      const blob = base64ParaBlob(dataUrl, "evidencia_" + (i + 1) + ".jpg");
+      const img = cell.appendImage(blob);
+      img.setWidth(105);
+      img.setHeight(79); // 4:3, igual à resolução original das capturas
+    } catch (err) { /* imagem inválida/corrompida — ignora e continua */ }
+  });
+}
+
 // ══════════════════════════════════════════════
-// PDF 1 — RELATÓRIO DE VIGILÂNCIA (com as fotos de evidência embutidas)
+// PDF 1 — RELATÓRIO DE VIGILÂNCIA (uma página: estatísticas percentuais + fotos)
 // ══════════════════════════════════════════════
 function gerarPdfVigilancia(dados) {
   const est = dados.estatisticas || {};
-  const porTipo = est.eventosPorTipo || {};
-  const contagem = est.contagemPorInfracao || {};
+  const percentagens = est.percentagemPorCategoria || {};
   const fotos = dados.fotos || [];
+  const minimo = est.pontuacaoMinima != null ? est.pontuacaoMinima : 65;
+  const aprovado = est.aprovado != null ? est.aprovado : (dados.confianca >= minimo);
 
   const doc = DocumentApp.create("tmp_vigilancia_" + Date.now());
   const body = doc.getBody();
-  body.setMarginTop(40).setMarginBottom(40).setMarginLeft(50).setMarginRight(50);
+  body.setMarginTop(30).setMarginBottom(30).setMarginLeft(40).setMarginRight(40);
 
   cabecalhoDocumento(body, "Relatório de Vigilância de Sessão");
 
@@ -250,54 +277,31 @@ function gerarPdfVigilancia(dados) {
     ["Número", dados.numero || "—"],
     ["Email", dados.emailAluno || "—"],
     ["Prova associada", dados.provaTitulo || "—"],
-    ["Duração da sessão", est.duracaoFormatada || "—"],
-    ["Total de eventos registados", String(est.totalEventos != null ? est.totalEventos : 0)],
-    ["Eventos do sistema", String(porTipo.SISTEMA || 0)],
-    ["Alertas", String(porTipo.ALERTA || 0)],
-    ["Ocorrências graves", String(porTipo.GRAVE || 0)],
-    ["Fotografias de evidência capturadas", String(fotos.length)]
+    ["Duração da sessão", est.duracaoFormatada || "—"]
   ]));
 
-  const indicePar = body.appendParagraph("ÍNDICE DE INTEGRIDADE FINAL: " + dados.confianca + "%");
-  indicePar.setSpacingBefore(16).setSpacingAfter(16);
-  indicePar.editAsText().setBold(true).setFontSize(15).setForegroundColor(corIndice(dados.confianca));
+  // Pontuação final — parte sempre de 100%, mínimo de aprovação é 65%
+  const scorePar = body.appendParagraph(
+    "PONTUAÇÃO FINAL: " + dados.confianca + "%   —   " +
+    (aprovado ? "APROVADO" : "REPROVADO") + " (mínimo " + minimo + "%)"
+  );
+  scorePar.setSpacingBefore(10).setSpacingAfter(10);
+  scorePar.editAsText().setBold(true).setFontSize(14).setForegroundColor(corIndice(dados.confianca));
 
-  body.appendParagraph("Infrações por Tipo").setHeading(DocumentApp.ParagraphHeading.HEADING2);
-  const linhasInfra = Object.keys(contagem).length
-    ? Object.keys(contagem).map(function (k) { return [k, contagem[k] + "x"]; })
-    : [["Nenhuma infração registada", ""]];
-  estilizarTabelaInfo(body.appendTable(linhasInfra));
-
-  body.appendParagraph("Resumo da IA").setHeading(DocumentApp.ParagraphHeading.HEADING2);
-  body.appendParagraph(dados.resumoIA || "Indisponível.").editAsText().setFontSize(10.5);
-
-  body.appendParagraph("Registo Completo de Eventos").setHeading(DocumentApp.ParagraphHeading.HEADING2);
-  const eventos = dados.eventos || [];
-  if (eventos.length) {
+  // Estatísticas percentuais por categoria: quanto cada tipo de ocorrência
+  // consumiu da pontuação inicial de 100%
+  body.appendParagraph("Estatísticas de Integridade").setHeading(DocumentApp.ParagraphHeading.HEADING2);
+  const categorias = Object.keys(percentagens);
+  if (categorias.length) {
+    categorias.sort(function (a, b) { return percentagens[b] - percentagens[a]; });
     estilizarTabelaInfo(body.appendTable(
-      eventos.map(function (ev) { return ["[" + ev.ts + "] " + ev.tipo, ev.descricao]; })
+      categorias.map(function (k) { return [k, "-" + percentagens[k] + "%"]; })
     ));
   } else {
-    body.appendParagraph("Sem eventos registados.");
+    body.appendParagraph("Nenhuma penalização registada — sessão sem ocorrências.").editAsText().setFontSize(10.5);
   }
 
-  if (fotos.length) {
-    body.appendPageBreak();
-    body.appendParagraph("Fotografias de Evidência").setHeading(DocumentApp.ParagraphHeading.HEADING2);
-    fotos.forEach(function (foto, i) {
-      try {
-        const dataUrl = (foto && foto.dataUrl) ? foto.dataUrl : foto;
-        const blob = base64ParaBlob(dataUrl, "evidencia_" + (i + 1) + ".jpg");
-        const img = body.appendImage(blob);
-        img.setWidth(280);
-        img.setHeight(210); // as fotos são sempre capturadas em 4:3 (320x240)
-        const ts = (foto && foto.ts) ? foto.ts : null;
-        const legenda = body.appendParagraph("Evidência " + (i + 1) + (ts ? " — capturada aos " + ts + " de sessão" : ""));
-        legenda.editAsText().setForegroundColor("#838ba0").setItalic(true).setFontSize(9);
-        legenda.setSpacingAfter(10);
-      } catch (err) { /* imagem inválida/corrompida — ignora e continua */ }
-    });
-  }
+  inserirGridFotos(body, fotos);
 
   rodapeMarca(body);
   return docParaPdfEDescartar(doc, "relatorio_vigilancia_" + nomeArquivoSeguro(dados.nome) + ".pdf");

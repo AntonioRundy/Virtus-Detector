@@ -257,17 +257,8 @@
     display: none;
   }
 
-  .exam-grid {
-    display: grid;
-    grid-template-columns: 1fr 380px;
-    grid-template-rows: auto auto 1fr;
-    gap: 24px;
-    min-height: calc(100vh - 140px);
-  }
-
   /* ── PAINEL DA PROVA ── */
   .prova-card {
-    grid-column: 1 / -1;
     background: var(--bg2);
     border: 1px solid var(--border);
     border-radius: var(--radius2);
@@ -286,12 +277,10 @@
   }
 
   .prova-perguntas {
-    padding: 16px 20px 20px;
-    max-height: 420px;
-    overflow-y: auto;
+    padding: 16px 20px 24px;
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 22px;
   }
 
   .prova-pergunta-num {
@@ -355,17 +344,7 @@
   .prova-opcao:hover { border-color: var(--border2); }
   .prova-opcao input { accent-color: var(--blue); margin: 0; }
 
-  /* ── PAINEL DE VÍDEO ── */
-  .video-panel {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius2);
-    box-shadow: var(--shadow);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-  }
-
+  /* ── CABEÇALHO DE PAINEL (reutilizado pela prova) ── */
   .panel-header {
     padding: 14px 20px;
     border-bottom: 1px solid var(--border);
@@ -382,57 +361,40 @@
     letter-spacing: 0.5px;
   }
 
-  .video-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    padding: 16px;
-    flex: 1;
-  }
-
-  .video-wrapper {
-    position: relative;
+  /* ── CÂMARA FIXA (canto superior esquerdo) ── */
+  .cam-fixa {
+    position: fixed;
+    top: 78px;
+    left: 16px;
+    width: 168px;
+    z-index: 40;
     border-radius: var(--radius);
     overflow: hidden;
     background: #000;
-    aspect-ratio: 16/9;
+    aspect-ratio: 4/3;
     border: 1px solid var(--border);
+    box-shadow: var(--shadow);
   }
 
-  .video-wrapper video {
+  .cam-fixa video {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
   }
 
-  .video-label {
+  .cam-rec {
     position: absolute;
-    bottom: 8px;
-    left: 8px;
-    background: rgba(0,0,0,0.75);
-    backdrop-filter: blur(4px);
-    border-radius: 5px;
-    padding: 3px 8px;
-    font-size: 11px;
-    font-weight: 500;
-    font-family: 'JetBrains Mono', monospace;
-    color: var(--blue2);
-    border: 1px solid var(--border);
-  }
-
-  .video-rec {
-    position: absolute;
-    top: 8px;
-    right: 8px;
+    top: 6px;
+    right: 6px;
     display: flex;
     align-items: center;
     gap: 5px;
     background: rgba(0,0,0,0.75);
     border-radius: 5px;
-    padding: 3px 8px;
-    font-size: 11px;
-    color: var(--red);
+    padding: 2px 7px;
+    font-size: 10px;
+    color: #fff;
     font-family: 'JetBrains Mono', monospace;
   }
 
@@ -444,12 +406,58 @@
     animation: pulse-anim 1s infinite;
   }
 
-  /* ── PAINEL DIREITO ── */
-  .right-column {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+  /* ── ÁREA PRINCIPAL DA PROVA (dominante no ecrã) ── */
+  .area-prova {
+    max-width: 980px;
+    width: 92%;
+    margin: 0 auto;
+    padding: 210px 0 56px;
+    min-height: calc(100vh - 73px);
   }
+
+  @media (min-width: 720px) {
+    .area-prova {
+      padding-top: 100px;
+      padding-left: 190px;
+    }
+  }
+
+  .sem-prova-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius2);
+    box-shadow: var(--shadow);
+    padding: 60px 40px;
+    text-align: center;
+    color: var(--text2);
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  /* ── BARRA DE AVISOS FIXA (base do ecrã, espessura reduzida) ── */
+  .aviso-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 30px;
+    z-index: 45;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 500;
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    color: var(--text2);
+    transition: background 0.3s, color 0.3s;
+  }
+
+  .aviso-ok { color: var(--green2); }
+  .aviso-warn { background: rgba(202,138,4,0.08); color: var(--yellow2); }
+  .aviso-danger { background: rgba(220,38,38,0.1); color: var(--red2); }
+
+  .oculto { display: none !important; }
 
   /* ── SCORE CARD ── */
   .score-card {
@@ -740,13 +748,8 @@
   }
 
   /* ── RESPONSIVO ── */
-  @media (max-width: 900px) {
-    .exam-grid {
-      grid-template-columns: 1fr;
-    }
-    .right-column {
-      order: -1;
-    }
+  @media (max-width: 500px) {
+    .cam-fixa { width: 120px; top: 74px; }
   }
 
   /* ── RODAPÉ ── */
@@ -772,6 +775,7 @@
     <div class="pulse-dot" id="headerDot"></div>
     <span id="headerStatusText">Sistema Pronto</span>
     <span id="sessionTimer" style="display:none; margin-left:16px; opacity:0.6;"></span>
+    <button class="btn-danger" id="finalizarBtn" style="display:none; margin-left:16px; padding:7px 18px; font-size:13px;">Encerrar Teste</button>
   </div>
 </header>
 
@@ -829,102 +833,60 @@
 
 <!-- ══════════ ECRÃ DE EXAME ══════════ -->
 <div id="examScreen">
-  <main>
-    <div class="exam-grid">
 
-      <!-- LINHA SUPERIOR: INFRAÇÕES -->
-      <div class="infracoes-card">
-        <div>
-          <div class="panel-title" style="margin-bottom:8px;">Eventos Registados</div>
-          <div class="infracoes-list" id="infracoesList">
-            <span class="no-infra">Nenhuma infração detetada</span>
-          </div>
-        </div>
-        <div style="display:flex; align-items:center; gap:12px; flex-shrink:0;">
-          <div class="student-badge" id="studentBadge">—</div>
-          <button class="btn-danger" id="finalizarBtn">Finalizar Sessão</button>
-        </div>
+  <!-- Câmara do candidato, fixa no canto superior esquerdo -->
+  <div class="cam-fixa">
+    <video id="vCam" autoplay playsinline muted></video>
+    <div class="cam-rec"><div class="rec-dot"></div> REC</div>
+  </div>
+
+  <!-- Área principal: a prova ocupa a maior parte do ecrã -->
+  <main class="area-prova">
+    <div class="prova-card" id="provaCard">
+      <div class="panel-header">
+        <span class="panel-title" id="provaTituloPanel">Prova</span>
       </div>
+      <div class="prova-enunciado" id="provaEnunciado"></div>
+      <div class="prova-perguntas" id="provaPerguntas"></div>
+    </div>
 
-      <!-- PROVA / TAREFA (só aparece se o link tiver ?prova=ID) -->
-      <div class="prova-card" id="provaCard">
-        <div class="panel-header">
-          <span class="panel-title" id="provaTituloPanel">Prova</span>
-        </div>
-        <div class="prova-enunciado" id="provaEnunciado"></div>
-        <div class="prova-perguntas" id="provaPerguntas"></div>
-      </div>
-
-      <!-- COLUNA ESQUERDA: VÍDEOS -->
-      <div class="video-panel">
-        <div class="panel-header">
-          <span class="panel-title">Feeds de Vigilância</span>
-          <div style="display:flex; align-items:center; gap:14px;">
-            <span style="font-size:11px; font-family: 'JetBrains Mono', monospace; color: var(--text2);" id="angleTelemetry"></span>
-            <span style="font-size:11px; font-family: 'JetBrains Mono', monospace; color: var(--text2);" id="faceStatus">Aguardando câmara...</span>
-          </div>
-        </div>
-        <div class="video-grid">
-          <div class="video-wrapper">
-            <video id="vCam" autoplay playsinline muted></video>
-            <div class="video-label">CAM — Candidato</div>
-            <div class="video-rec"><div class="rec-dot"></div> REC</div>
-          </div>
-          <div class="video-wrapper">
-            <video id="vScr" autoplay playsinline muted></video>
-            <div class="video-label">SCR — Partilha de Ecrã</div>
-            <div class="video-rec" style="display:none;" id="scrRec"><div class="rec-dot"></div> LIVE</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- COLUNA DIREITA -->
-      <div class="right-column">
-
-        <!-- SCORE -->
-        <div class="score-card">
-          <div class="score-header">
-            <div>
-              <div class="score-value high" id="scoreValue">100</div>
-              <div class="score-label">Índice de Integridade</div>
-            </div>
-            <div id="statusCard" class="status-card ok" style="flex:1; margin-left:16px; padding:10px 14px;">
-              <div class="status-icon" id="statusIcon">✅</div>
-              <div class="status-text" id="statusText">Foco Validado</div>
-            </div>
-          </div>
-          <div class="score-bar-track">
-            <div class="score-bar-fill" id="scoreBar" style="width:100%;"></div>
-          </div>
-        </div>
-
-        <!-- AUDIO -->
-        <div class="audio-card">
-          <div style="display:flex; align-items:center; justify-content:space-between;">
-            <div class="panel-title">Nível de Áudio</div>
-            <span style="font-size:11px; font-family:'JetBrains Mono',monospace; color:var(--text2);" id="audioLabel">Silêncio</span>
-          </div>
-          <div class="audio-bar-track">
-            <div id="aBar"></div>
-          </div>
-        </div>
-
-        <!-- IA ANOTAÇÕES -->
-        <div class="ia-card">
-          <div class="panel-header">
-            <span class="panel-title">🤖 Assistente IA — Anotações</span>
-            <span style="font-size:11px; color:var(--blue); font-weight:500;">claude-sonnet</span>
-          </div>
-          <div class="ia-chat" id="iaChat"></div>
-          <div class="ia-input-area">
-            <input type="text" id="iaInput" placeholder="Faça uma pergunta sobre a sessão...">
-            <button class="ia-send-btn" id="iaSendBtn" title="Enviar">➤</button>
-          </div>
-        </div>
-
-      </div>
+    <div class="sem-prova-card" id="semProvaCard" style="display:none;">
+      <p>Sessão de vigilância em curso.</p>
+      <p style="margin-top:8px;">Aguarde as instruções do seu professor/avaliador.</p>
     </div>
   </main>
+
+  <!-- Barra fina de avisos, fixa na base do ecrã -->
+  <div class="aviso-bar aviso-ok" id="avisoBar">✅ Tudo normal</div>
+
+  <!-- Partilha de ecrã: o stream fica ativo (vigilância) mas não é mostrado ao aluno -->
+  <video id="vScr" autoplay playsinline muted class="oculto"></video>
+  <div class="oculto" id="scrRec"></div>
+
+  <!-- Elementos de vigilância mantidos no DOM mas ocultos: a deteção, pontuação e
+       registo de eventos continuam a funcionar normalmente, só deixam de aparecer
+       ao aluno durante a prova. -->
+  <div class="oculto">
+    <div class="infracoes-list" id="infracoesList"><span class="no-infra">Nenhuma infração detetada</span></div>
+    <div class="student-badge" id="studentBadge">—</div>
+
+    <div class="score-value high" id="scoreValue">100</div>
+    <div class="score-bar-fill" id="scoreBar"></div>
+    <div id="statusCard" class="status-card ok">
+      <div class="status-icon" id="statusIcon">✅</div>
+      <div class="status-text" id="statusText">Foco Validado</div>
+    </div>
+
+    <span id="audioLabel">Silêncio</span>
+    <div id="aBar"></div>
+
+    <div id="iaChat"></div>
+    <input type="text" id="iaInput">
+    <button id="iaSendBtn">➤</button>
+
+    <span id="faceStatus"></span>
+    <span id="angleTelemetry"></span>
+  </div>
 </div>
 
 <footer id="brandFooter">Virtus-Detector © Virtus LDA — Criado por António Rundy Manuel Fernando</footer>
@@ -957,6 +919,7 @@ let kuyingila = false;
 let confianca = 100;
 let infracoes = [];
 let infracaoContagem = {}; // contagem por tipo de infração, para as estatísticas do relatório
+let pontosPorCategoria = {}; // pontos percentuais perdidos por categoria (dos 100% iniciais)
 let galeriaFotos = [];
 let inicioDistracao = 0;
 let estaDistraido = false;
@@ -986,6 +949,7 @@ const pitchState = { overSince: 0, lastFlag: 0 };
 let olhoFechado = false;
 let ultimoPiscar = 0;
 let ultimoAvisoLiveness = 0;
+let ultimoAvisoRuido = 0;
 
 // ── Assinatura facial (deteção básica de troca de candidato) ──
 let assinaturaReferencia = null;
@@ -1430,6 +1394,7 @@ luseMatadi.onResults((bima) => {
 function subtrair(pts, motivo) {
   confianca = Math.max(0, confianca - pts);
   infracaoContagem[motivo] = (infracaoContagem[motivo] || 0) + 1;
+  pontosPorCategoria[motivo] = (pontosPorCategoria[motivo] || 0) + pts;
   if (!infracoes.includes(motivo)) {
     infracoes.push(motivo);
     atualizarInfrações();
@@ -1437,7 +1402,10 @@ function subtrair(pts, motivo) {
   atualizarScore();
 }
 
-// Estatísticas completas da sessão, usadas no relatório enviado por email
+// Estatísticas completas da sessão, usadas no relatório enviado por email.
+// Como a "confiança" começa em 100 e cada infração desconta pontos percentuais
+// diretamente dela, pontosPorCategoria já representa a percentagem perdida por
+// categoria (ex: 9 = perdeu 9 pontos percentuais dos 100% iniciais por essa causa).
 function construirEstatisticas() {
   const porTipo = { SISTEMA: 0, ALERTA: 0, GRAVE: 0 };
   sessionLogs.forEach(l => { porTipo[l.tipo] = (porTipo[l.tipo] || 0) + 1; });
@@ -1448,6 +1416,9 @@ function construirEstatisticas() {
     totalEventos: sessionLogs.length,
     eventosPorTipo: porTipo,
     contagemPorInfracao: infracaoContagem,
+    percentagemPorCategoria: pontosPorCategoria,
+    pontuacaoMinima: 65,
+    aprovado: Math.round(confianca) >= 65,
     fotosCapturadas: galeriaFotos.length
   };
 }
@@ -1489,6 +1460,12 @@ function samuna(msg, tipo) {
   statusIcon.textContent = t.icon;
   statusText.textContent = t.text.replace("✅ ", "").replace("⚠️ ", "").replace("🚨 ", "");
   statusCard.className = "status-card " + t.cls;
+
+  const avisoBar = document.getElementById("avisoBar");
+  if (avisoBar) {
+    avisoBar.textContent = t.icon + " " + t.text.replace("✅ ", "").replace("⚠️ ", "").replace("🚨 ", "");
+    avisoBar.className = "aviso-bar aviso-" + t.cls;
+  }
 }
 
 // ══════════════════════════════════════════════
@@ -1624,6 +1601,10 @@ async function wunikina(stream) {
       audioLabel.style.color = "var(--red)";
       subtrair(2, "Ruído de áudio elevado");
       logEvento("ALERTA", "Ruído elevado detetado (vol=" + Math.round(vol) + ")");
+      if (Date.now() - ultimoAvisoRuido > 2000) {
+        samuna("🚨 Ruído elevado detetado", "danger");
+        ultimoAvisoRuido = Date.now();
+      }
     } else if (vol > 30) {
       bar.style.background = "var(--yellow)";
       audioLabel.textContent = "Fala Detetada";
@@ -1791,6 +1772,8 @@ document.getElementById("yantikaBtn").addEventListener("click", async () => {
 
   headerDot.classList.add("active");
   headerStatusText.textContent = "Sessão Ativa";
+  finalizarBtn.style.display = "inline-block";
+  if (!provaAtual) document.getElementById("semProvaCard").style.display = "block";
   startTimer();
 
   await pedirTelaCheia();
