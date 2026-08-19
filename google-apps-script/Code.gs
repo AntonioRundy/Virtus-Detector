@@ -126,19 +126,26 @@ function obterProva(id) {
 function doPost(e) {
   try {
     const dados = JSON.parse(e.postData.contents);
+    Logger.log("doPost recebido. acao=%s nome=%s provaId=%s fotos=%s perguntas=%s",
+      dados.acao || "(submissão)", dados.nome, dados.provaId,
+      (dados.fotos || []).length, (dados.perguntas || []).length);
 
     if (dados.acao === "criarProva") {
       guardarProva(dados);
+      Logger.log("Prova guardada: " + dados.id);
       return saidaJSON({ ok: true, id: dados.id });
     }
 
     enviarEmailRelatorio(dados);
+    Logger.log("Email enviado com sucesso.");
     registarNaFolha(dados);
     if (dados.perguntas && dados.perguntas.length) registarRespostas(dados);
     registarConclusao(dados);
+    Logger.log("Registos gravados com sucesso.");
 
     return saidaJSON({ ok: true });
   } catch (err) {
+    Logger.log("ERRO NO doPost: " + err + " | STACK: " + (err.stack || "sem stack"));
     return saidaJSON({ ok: false, erro: String(err) });
   }
 }
@@ -354,8 +361,18 @@ function enviarEmailRelatorio(dados) {
   const est = dados.estatisticas || {};
   const porTipo = est.eventosPorTipo || {};
 
+  Logger.log("A gerar PDF de vigilância...");
   const pdfVigilancia = gerarPdfVigilancia(dados);
+  Logger.log("PDF de vigilância pronto: " + pdfVigilancia.getName() + " (" + pdfVigilancia.getBytes().length + " bytes)");
+
+  Logger.log("A gerar PDF de respostas (se houver prova)...");
   const pdfRespostas = gerarPdfFolhaRespostas(dados);
+  if (pdfRespostas) {
+    Logger.log("PDF de respostas pronto: " + pdfRespostas.getName() + " (" + pdfRespostas.getBytes().length + " bytes)");
+  } else {
+    Logger.log("Sem prova associada — só um PDF será enviado.");
+  }
+
   const anexos = pdfRespostas ? [pdfRespostas, pdfVigilancia] : [pdfVigilancia];
 
   const html =
@@ -383,12 +400,15 @@ function enviarEmailRelatorio(dados) {
     '</div>';
 
   const assuntoBase = dados.provaTitulo ? dados.provaTitulo : "Relatório de Exame";
+  const destino = dados.destinatario || DESTINATARIO;
+  Logger.log("A enviar email para: " + destino + " | anexos: " + anexos.length + " | quota restante hoje: " + MailApp.getRemainingDailyQuota());
   MailApp.sendEmail({
-    to: dados.destinatario || DESTINATARIO,
+    to: destino,
     subject: assuntoBase + " — " + (dados.nome || "Candidato") + " (" + dados.confianca + "%)",
     htmlBody: html,
     attachments: anexos
   });
+  Logger.log("MailApp.sendEmail() concluído sem lançar erro.");
 }
 
 // ══════════════════════════════════════════════
