@@ -31,6 +31,13 @@ const FOLHA_RESPOSTAS = "Respostas";
 const FOLHA_ACESSOS = "Acessos";
 const ASSINATURA = "Virtus-Detector © Virtus LDA — Criado por António Rundy Manuel Fernando";
 
+// Chave partilhada exigida para criar/editar provas (deve ser IGUAL à constante
+// CHAVE_ADMIN no admin.html). Não é segurança "à prova de bala" — como o
+// admin.html também está num repositório público, alguém suficientemente
+// interessado consegue lê-la no código-fonte — mas impede abuso automatizado
+// e casual do endpoint. Se precisar de trocar, mude aqui E no admin.html.
+const CHAVE_ADMIN = "b8ccccbdbb855a512b8d44b9c30860207504a38b5f97ce67";
+
 // ══════════════════════════════════════════════
 // BASE DE DADOS (auto-criada na primeira utilização)
 // ══════════════════════════════════════════════
@@ -103,6 +110,20 @@ function registarConclusao(dados) {
   sheet.appendRow([dados.provaId, String(dados.emailAluno).trim().toLowerCase(), new Date()]);
 }
 
+// Impede que uma prova já respondida por pelo menos um aluno seja reescrita
+// (protege contra alguém tentar adulterar uma prova a meio de uma avaliação real).
+function provaTemSubmissoes(provaId) {
+  if (!provaId) return false;
+  const ss = obterBaseDados();
+  const sheet = ss.getSheetByName(FOLHA_ACESSOS);
+  if (!sheet) return false;
+  const linhas = sheet.getDataRange().getValues();
+  for (let i = 1; i < linhas.length; i++) {
+    if (String(linhas[i][0]) === String(provaId)) return true;
+  }
+  return false;
+}
+
 function obterProva(id) {
   const ss = obterBaseDados();
   const sheet = ss.getSheetByName(FOLHA_PROVAS);
@@ -132,6 +153,14 @@ function doPost(e) {
       (dados.fotos || []).length, (dados.perguntas || []).length);
 
     if (dados.acao === "criarProva") {
+      if (dados.chave !== CHAVE_ADMIN) {
+        Logger.log("BLOQUEADO: tentativa de criarProva com chave inválida/ausente.");
+        return saidaJSON({ ok: false, erro: "Não autorizado." });
+      }
+      if (provaTemSubmissoes(dados.id)) {
+        Logger.log("BLOQUEADO: tentativa de sobrescrever prova já respondida: " + dados.id);
+        return saidaJSON({ ok: false, erro: "Esta prova já tem submissões e não pode ser alterada." });
+      }
       guardarProva(dados);
       Logger.log("Prova guardada: " + dados.id);
       return saidaJSON({ ok: true, id: dados.id });
@@ -416,10 +445,13 @@ function enviarEmailRelatorio(dados) {
     '</div>';
 
   const assuntoBase = dados.provaTitulo ? dados.provaTitulo : "Relatório de Exame";
-  const destino = dados.destinatario || DESTINATARIO;
-  Logger.log("A enviar email para: " + destino + " | anexos: " + anexos.length + " | quota restante hoje: " + MailApp.getRemainingDailyQuota());
+  // O destinatário NUNCA vem do payload do cliente — só a constante do servidor.
+  // Aceitar um "destinatario" vindo do pedido transformaria isto num
+  // retransmissor de email aberto (qualquer um poderia mandar a conta do
+  // professor enviar emails, com anexos, para qualquer endereço à escolha).
+  Logger.log("A enviar email para: " + DESTINATARIO + " | anexos: " + anexos.length + " | quota restante hoje: " + MailApp.getRemainingDailyQuota());
   MailApp.sendEmail({
-    to: destino,
+    to: DESTINATARIO,
     subject: assuntoBase + " — " + (dados.nome || "Candidato") + " (" + dados.confianca + "%)",
     htmlBody: html,
     attachments: anexos

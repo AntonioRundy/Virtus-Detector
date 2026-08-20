@@ -1112,7 +1112,12 @@ function renderProva() {
       p.opcoes.forEach((op) => {
         const label = document.createElement("label");
         label.className = "prova-opcao";
-        label.innerHTML = `<input type="radio" name="prova_pergunta_${i}" value="${op.replace(/"/g, "&quot;")}"> ${op}`;
+        const input = document.createElement("input");
+        input.type = "radio";
+        input.name = "prova_pergunta_" + i;
+        input.value = op;
+        label.appendChild(input);
+        label.appendChild(document.createTextNode(" " + op));
         opcoesDiv.appendChild(label);
       });
       bloco.appendChild(opcoesDiv);
@@ -1471,6 +1476,19 @@ function samuna(msg, tipo) {
 // ══════════════════════════════════════════════
 // LOG DE EVENTOS
 // ══════════════════════════════════════════════
+// Constrói uma mensagem do chat da IA em segurança (sem innerHTML), para que
+// texto controlado pelo utilizador (nome, pergunta) nunca seja interpretado
+// como HTML/JavaScript.
+function criarMsgChat(rotulo, texto) {
+  const el = document.createElement("div");
+  el.className = "ia-msg";
+  const forte = document.createElement("strong");
+  forte.textContent = rotulo;
+  el.appendChild(forte);
+  el.appendChild(document.createTextNode(" " + texto));
+  return el;
+}
+
 function logEvento(tipo, descricao) {
   const ts = sessionStart
     ? Math.floor((Date.now() - sessionStart) / 1000) + "s"
@@ -1515,9 +1533,7 @@ async function enviarMensagemIA(pergunta) {
   iaSendBtn.disabled = true;
 
   // Adicionar mensagem do utilizador ao chat
-  const userEl = document.createElement("div");
-  userEl.className = "ia-msg";
-  userEl.innerHTML = `<strong>Você:</strong> ${pergunta}`;
+  const userEl = criarMsgChat("Você:", pergunta);
   iaChat.appendChild(userEl);
 
   // Indicador de digitação
@@ -1550,9 +1566,7 @@ async function enviarMensagemIA(pergunta) {
 
     // Remover spinner e mostrar resposta
     thinkEl.remove();
-    const botEl = document.createElement("div");
-    botEl.className = "ia-msg";
-    botEl.innerHTML = `<strong>IA:</strong> ${resposta}`;
+    const botEl = criarMsgChat("IA:", resposta);
     iaChat.appendChild(botEl);
     iaChat.scrollTop = iaChat.scrollHeight;
 
@@ -1803,9 +1817,7 @@ document.getElementById("yantikaBtn").addEventListener("click", async () => {
 
     // Mensagem de boas-vindas da IA
     setTimeout(() => {
-      const el = document.createElement("div");
-      el.className = "ia-msg";
-      el.innerHTML = `<strong>IA:</strong> Sessão iniciada para <strong>${nome}</strong>. Estou a monitorizar o comportamento em tempo real. Pode fazer-me perguntas sobre a sessão a qualquer momento.`;
+      const el = criarMsgChat("IA:", "Sessão iniciada para " + nome + ". Estou a monitorizar o comportamento em tempo real.");
       iaChat.appendChild(el);
     }, 1000);
 
@@ -1872,7 +1884,6 @@ finalizarBtn.addEventListener("click", async () => {
     estatisticas: construirEstatisticas(),
     eventos: sessionLogs,
     fotos: galeriaFotos,
-    destinatario: "davidmanuelsb@gmail.com",
     provaId: provaAtual ? provaAtual.id : "",
     provaTitulo: provaAtual ? provaAtual.titulo : "",
     emailAluno: emailAluno,

@@ -283,6 +283,10 @@
 <script>
 const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyOW08VAg6vD09feQXH8BmBT9p-Xfa_K0FkGo7KJQ6tmqDxqDHnxZDRv8HRE_ckrRY2/exec";
 const SITE_URL = "https://antoniorundy.github.io/Virtus-Detector/";
+// Tem de ser IGUAL à constante CHAVE_ADMIN no Code.gs. Isto não esconde a chave
+// de alguém que leia o código-fonte deste ficheiro (é um repositório público) —
+// só impede que o endpoint seja usado/abusado às cegas, sem olhar para o código.
+const CHAVE_ADMIN = "b8ccccbdbb855a512b8d44b9c30860207504a38b5f97ce67";
 
 let perguntas = [];
 
@@ -456,6 +460,7 @@ gerarBtn.addEventListener("click", async () => {
   const id = gerarId();
   const payload = {
     acao: "criarProva",
+    chave: CHAVE_ADMIN,
     id: id,
     titulo: titulo,
     enunciado: document.getElementById("enunciadoGeral").value.trim(),
